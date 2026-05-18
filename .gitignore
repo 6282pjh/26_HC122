@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+.env.*
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Large data
+data/raw/
+data/processed/
+data/full/
+*.bag
+*.db3
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar
+*.tar.gz
+
+# Model checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+
+# Results / logs
+results/full/
+logs/
+runs/
+wandb/
+
+# Singularity
+*.sif
+
+# Secrets
+secrets/
+credentials/
+*.pem
+*.key
