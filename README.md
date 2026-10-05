@@ -102,75 +102,52 @@
 
 ## **💡2. 팀원 소개**
 
-| <img width="100" height="125" src="assets/images/team/mentee1.png"> | <img width="100" height="125" src="assets/images/team/mentee2.png"> | <img width="100" height="125" src="assets/images/team/mentee3.png"> | <img width="100" height="125" src="assets/images/team/mentee4.png"> | <img width="100" height="125" src="assets/images/team/mentee5.png"> | <img width="100" height="125" src="assets/images/team/mentor.png"> |
+| <img width="100" height="125" src="assets/images/team/leader.png"> | <img width="100" height="125" src="assets/images/team/mentee1.png"> | <img width="100" height="125" src="assets/images/team/mentee2.png"> | <img width="100" height="125" src="assets/images/team/mentee3.png"> | <img width="100" height="125" src="assets/images/team/mentee4.png"> | <img width="100" height="125" src="assets/images/team/mentor.png"> |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| **멘티1 (팀장)** | **멘티2** | **멘티3** | **멘티4** | **멘티5** | **멘토** |
-| • SW 총괄 <br> • 월드 모델 LoRA 파인튜닝 <br> • STT·웹 승인 콘솔 | • 강화학습 <br> • Isaac Lab 절개 정책 <br> • Sim-to-Real | • H/W 설계·제작 <br> • 로봇 제어 | • H/W 설계·제작 <br> • 로봇 제어 | • S/W 개발 | • 프로젝트 멘토 <br> • 기술 자문 |
-| ![SW](https://img.shields.io/badge/SW-Lead-blue) <br> ![WM](https://img.shields.io/badge/World-Model-76B900) | ![RL](https://img.shields.io/badge/RL-Isaac%20Lab-76B900) <br> ![PPO](https://img.shields.io/badge/PPO-Policy-orange) | ![HW](https://img.shields.io/badge/HW-Design-brown) <br> ![Robot](https://img.shields.io/badge/Robot-Control-black) | ![HW](https://img.shields.io/badge/HW-Design-brown) <br> ![Robot](https://img.shields.io/badge/Robot-Control-black) | ![SW](https://img.shields.io/badge/SW-Dev-lightblue) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
+| **팀장** | **멘티1** | **멘티2** | **멘티3** | **멘티4** | **멘토** |
+| • 통합 환경 구축 | • 월드 모델 구성 | • 강화 학습 | • 하드웨어 제작 | • 비전 인식 | • 프로젝트 멘토 <br> • 기술 자문 |
+| ![Leader](https://img.shields.io/badge/Team-Leader-blue) <br> ![Integration](https://img.shields.io/badge/System-Integration-lightseagreen) | ![WM](https://img.shields.io/badge/World-Model-76B900) <br> ![Cosmos](https://img.shields.io/badge/Cosmos-LoRA-orange) | ![RL](https://img.shields.io/badge/RL-Isaac%20Lab-76B900) <br> ![PPO](https://img.shields.io/badge/PPO-Policy-orange) | ![HW](https://img.shields.io/badge/HW-Fabrication-brown) <br> ![Robot](https://img.shields.io/badge/DOFBOT-Robot-black) | ![Vision](https://img.shields.io/badge/Vision-Recognition-red) <br> ![Calib](https://img.shields.io/badge/Camera-Calibration-yellowgreen) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
 
 ---
 
 ## **💡3. 시스템 구성도**
 
-**3-1. 서비스 흐름도**
+| **3-1. 서비스 흐름도** |
+|---|
+| [<img src="assets/diagrams/service_flow.png" width="700" alt="서비스 흐름도">](assets/diagrams/service_flow.png) |
 
-```mermaid
-flowchart LR
-    A["🎙️ 집도의 음성 명령"] --> B["📷 현재 수술 환경 자동 촬영"]
-    A --> C["Whisper STT<br/>절개 / 개복 / 수술 완료 분류"]
-    C --> D["LLM<br/>영어 행동 프롬프트 변환"]
-    B --> E["Cosmos-Predict2.5-2B + LoRA<br/>Image2World 미래 행동 예측"]
-    D --> E
-    E --> F{"🩺 집도의 검토<br/>(3초 내 2회 탭)"}
-    F -- 거부 --> A
-    F -- 승인 --> G["Jetson AGX Xavier<br/>승인 명령 폴링"]
-    G --> H["🦾 양팔 DOFBOT 실행"]
-    H -- "ACK (job_id)" --> I["웹 콘솔 상태 반영"]
-```
+집도의가 앱에서 음성으로 명령하면 ① Gemini E 카메라가 현재 수술대를 촬영해 서버로 올리고, ② 음성은 STT와 LLM을 거쳐 행동 프롬프트로 바뀝니다. 서버의 Cosmos-Predict2.5-2B가 두 입력으로 시뮬레이션 영상을 생성해 돌려주면, 집도의가 검토 후 **승인한 경우에만** 다음 작업(로봇 실행)으로 진행합니다.
 
-**3-2. S/W 구성도** — 4개 노드 · 단방향 폴링 구조
+| **3-2. S/W 구성도** |
+|---|
+| [<img src="assets/diagrams/sw_architecture.png" width="700" alt="S/W 구성도">](assets/diagrams/sw_architecture.png) |
 
-```mermaid
-flowchart TB
-    subgraph Tablet["태블릿 (iPad Safari)"]
-        UI["Flask 웹 콘솔<br/>명령 → 생성 중 → 검토"]
-    end
-    subgraph Server["GPU 서버 (RTX A6000 48GB)"]
-        WEB["Flask app.py<br/>job 상태 파일 관리"]
-        LIS["listener<br/>Whisper → LLM → Cosmos"]
-        CMD[("robot_bridge/<br/>command.json")]
-        CAP[("capture_bridge/<br/>capture_command.json")]
-    end
-    subgraph Laptop["카메라 노트북"]
-        CC["capture_client.py<br/>Orbbec Gemini E"]
-    end
-    subgraph Jetson["로봇 제어부 (Jetson AGX Xavier)"]
-        SM["상태 시퀀스 검증"]
-        RL["PPO 절개 정책 + 좌표 변환"]
-    end
+시스템은 **태블릿 · 카메라 노트북 · GPU 서버 · Jetson 제어부**의 4개 노드로 나뉘어 동작합니다. 카메라 노트북과 Jetson은 외부에서 직접 접속할 수 있는 주소가 없기 때문에, 서버가 상태 파일에 명령을 **게시**하고 각 장치가 1~1.5초 주기로 이를 **조회(polling)** 해 가는 단방향 구조로 설계했습니다. 서버는 명령을 게시할 수만 있고, 실제 실행 여부는 로봇이 최종 판단합니다. 태블릿 접속은 Tailscale Funnel을 통한 HTTPS로 제공됩니다.
 
-    UI <-- "HTTPS (Tailscale Funnel)" --> WEB
-    WEB --> LIS
-    WEB --> CMD
-    WEB --> CAP
-    CC -- "1초 폴링 / PNG 업로드" --> CAP
-    SM -- "1초 폴링 GET /robot/command" --> CMD
-    SM -- "POST /robot/ack" --> WEB
-    SM --> RL
-```
+| **3-3. 월드 모델 흐름도** |
+|---|
+| [<img src="assets/diagrams/worldmodel_flow.png" width="700" alt="월드 모델 흐름도">](assets/diagrams/worldmodel_flow.png) |
 
-> 카메라 노트북과 Jetson은 외부에서 직접 접속할 수 있는 주소가 없기 때문에, 서버가 상태 파일에 명령을 **게시**하고 각 장치가 이를 **조회**해 가는 단방향 폴링 구조로 설계했습니다. 서버는 명령을 게시할 수만 있고, 실제 실행 여부는 로봇이 최종 판단합니다.
-
-**3-3. 예측계 · 제어계 분리 (핵심 설계)**
+명령 시점에 촬영한 **정지 이미지 1장**과 음성 명령에서 변환된 **영어 행동 프롬프트**를 조건으로, 촬영 환경을 학습시킨 LoRA 어댑터(rank 8)를 얹은 Cosmos-Predict2.5-2B가 이후 동작을 예측합니다(Image2World). 결과는 960×528 · 16fps · 93프레임(약 5.8초) 영상으로 웹 콘솔에 표시됩니다.
 
 | 계통 | 입력 | 출력 | 역할 |
 |---|---|---|---|
 | **예측계** | 촬영 이미지 + 행동 프롬프트 | 미래 행동 예측 영상 | 집도의 판단 지원 |
 | **제어계** | 실제 카메라 관측 + 승인된 명령 | 로봇 관절 제어 명령 | 실제 DOFBOT 실행 |
 
-두 계통을 잇는 것은 로봇 제어 데이터가 아니라 **집도의의 승인 신호** 하나뿐입니다. 생성 영상은 픽셀 결과물이라 실제 좌표나 깊이 정보가 아니므로, 영상 속 로봇팔 위치를 제어값으로 쓰지 않습니다.
+> 두 계통을 잇는 것은 로봇 제어 데이터가 아니라 **집도의의 승인 신호** 하나뿐입니다. 생성 영상은 픽셀 결과물이라 실제 좌표나 깊이 정보가 아니므로, 영상 속 로봇팔 위치를 제어값으로 쓰지 않습니다.
 
-**3-4. 로봇 안전 상태 시퀀스**
+| **3-4. H/W 구성도** |
+|---|
+| [<img src="assets/diagrams/hw_architecture.png" width="700" alt="H/W 구성도">](assets/diagrams/hw_architecture.png) |
+
+- 수술대 좌우에 6축 **Yahboom DOFBOT ×2** 배치 — 우측은 Scalpel Adapter로 절개, 좌측은 조직 고정·개복 보조
+- 두 DOFBOT 확장보드가 동일한 I2C 주소(0x15)를 사용하므로 Jetson의 **Bus 1(좌) / Bus 8(우)** 로 물리적으로 분리해 독립 제어
+- 3D 프린팅 **Scalpel Adapter / Opening Adapter** 자체 설계 — 절개 기준점을 그리퍼 중심에서 실제 칼날 끝(Blade Tip)으로 재정의
+- 카메라 역할 분리 : **Logitech C920**(상부, 절개선 검출·로봇 제어) / **Orbbec Gemini E**(측면, 월드 모델 입력·학습 데이터)
+- 그린스크린 · 암막 · LED 조명으로 촬영 환경 고정 → 영상 간 차이가 로봇 행동 변화만 되도록 통제
+
+**로봇 안전 상태 시퀀스**
 
 ```mermaid
 stateDiagram-v2
@@ -184,15 +161,12 @@ stateDiagram-v2
 
 > 현재 상태에서 허용되지 않는 명령은 로봇이 자체적으로 거부합니다. 서버가 잘못된 순서의 명령을 보내더라도 실제 동작으로 이어지지 않는 이중 안전 구조입니다.
 
-**3-5. H/W 구성도**
+| **3-5. 엔티티 관계도** |
+|---|
+| [<img src="assets/diagrams/erd.png" width="700" alt="엔티티 관계도">](assets/diagrams/erd.png) |
 
-<img width="700" alt="H/W 구성도" src="assets/diagrams/hw_architecture.png" /></br>
+하나의 음성 명령(`USER_COMMAND`)에서 STT 결과 · 장면 이미지 · 검토 작업(`REVIEW_JOB`)이 파생되고, 검토 작업에 시뮬레이션 영상(`SIM_VIDEO`)과 승인(`APPROVAL`)이 연결됩니다. 승인된 작업만 로봇 명령(`ROBOT_COMMAND`)이 되며, 로봇의 응답(`ROBOT_ACK`)이 시스템 상태(`SYSTEM_STATE`)를 갱신합니다. 장면 이미지는 캘리브레이션 정보(`CALIBRATION_PROFILE`)를 거쳐 절개 목표 좌표(`TARGET_COORDINATE`)로 변환되어 로봇 명령에 첨부됩니다.
 
-- 수술대 좌우에 6축 **Yahboom DOFBOT ×2** 배치 — 우측은 Scalpel Adapter로 절개, 좌측은 조직 고정·개복 보조
-- 두 DOFBOT 확장보드가 동일한 I2C 주소(0x15)를 사용하므로 Jetson의 **Bus 1(좌) / Bus 8(우)** 로 물리적으로 분리해 독립 제어
-- 3D 프린팅 **Scalpel Adapter / Opening Adapter** 자체 설계 — 절개 기준점을 그리퍼 중심에서 실제 칼날 끝(Blade Tip)으로 재정의
-- 카메라 역할 분리 : **Logitech C920**(상부, 절개선 검출·로봇 제어) / **Orbbec Gemini E**(측면, 월드 모델 입력·학습 데이터)
-- 그린스크린 · 암막 · LED 조명으로 촬영 환경 고정 → 영상 간 차이가 로봇 행동 변화만 되도록 통제
 
 ---
 
