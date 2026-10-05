@@ -105,7 +105,7 @@
 | <img width="100" height="125" src="assets/images/team/leader.png"> | <img width="100" height="125" src="assets/images/team/mentee1.png"> | <img width="100" height="125" src="assets/images/team/mentee2.png"> | <img width="100" height="125" src="assets/images/team/mentee3.png"> | <img width="100" height="125" src="assets/images/team/mentee4.png"> | <img width="100" height="125" src="assets/images/team/mentor.png"> |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | **팀장** | **멘티1** | **멘티2** | **멘티3** | **멘티4** | **멘토** |
-| • 통합 환경 구축 | • 월드 모델 구성 | • 강화 학습 | • 하드웨어 제작 | • 비전 인식 | • 프로젝트 멘토 <br> • 기술 자문 |
+| • 통합 환경 구축 <br> • 서버·Jetson 연동 | • 월드 모델 구성 <br> • Cosmos LoRA 파인튜닝 | • 강화 학습 <br> • PPO 절개 정책 학습 | • 하드웨어 제작 <br> • 양팔 로봇·도구 어댑터 | • 비전 인식 <br> • 절개선 검출·좌표 보정 | • 프로젝트 멘토 <br> • 기술 자문 |
 | ![Leader](https://img.shields.io/badge/Team-Leader-blue) <br> ![Integration](https://img.shields.io/badge/System-Integration-lightseagreen) | ![WM](https://img.shields.io/badge/World-Model-76B900) <br> ![Cosmos](https://img.shields.io/badge/Cosmos-LoRA-orange) | ![RL](https://img.shields.io/badge/RL-Isaac%20Lab-76B900) <br> ![PPO](https://img.shields.io/badge/PPO-Policy-orange) | ![HW](https://img.shields.io/badge/HW-Fabrication-brown) <br> ![Robot](https://img.shields.io/badge/DOFBOT-Robot-black) | ![Vision](https://img.shields.io/badge/Vision-Recognition-red) <br> ![Calib](https://img.shields.io/badge/Camera-Calibration-yellowgreen) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
 
 ---
