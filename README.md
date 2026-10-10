@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/RL-Isaac%20Lab%20%2B%20PPO-76B900?style=flat&logo=nvidia&logoColor=white">
   <img src="https://img.shields.io/badge/Human--in--the--loop-2%E2%80%91step%20approval-blue?style=flat">
   <img src="https://img.shields.io/badge/Robot-Dual%20DOFBOT%20%2B%20Jetson-black?style=flat">
+  <br><a href="https://www.youtube.com/watch?v=k7HaMJAGI6U"><img src="https://img.shields.io/badge/YouTube-%EC%8B%9C%EC%97%B0%20%EC%98%81%EC%83%81-FF0000?style=for-the-badge&logo=youtube&logoColor=white"></a>
 </p>
 
 ---
@@ -102,9 +103,10 @@
 
 ## **💡2. 팀원 소개**
 
-| <img width="100" height="125" src="assets/images/team/leader.png"> | <img width="100" height="125" src="assets/images/team/mentee1.png"> | <img width="100" height="125" src="assets/images/team/mentee2.png"> | <img width="100" height="125" src="assets/images/team/mentee3.png"> | <img width="100" height="125" src="assets/images/team/mentee4.png"> | <img width="100" height="125" src="assets/images/team/mentor.png"> |
+| **박지환** | **안찬우** | **문재원** | **임성민** | **김시완** | **박정규** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| **팀장** | **멘티1** | **멘티2** | **멘티3** | **멘티4** | **멘토** |
+| <img width="110" src="assets/images/team/leader.png"> | <img width="110" src="assets/images/team/mentee1.png"> | <img width="110" src="assets/images/team/mentee2.png"> | <img width="110" src="assets/images/team/mentee3.png"> | <img width="110" src="assets/images/team/mentee4.png"> | <img width="110" src="assets/images/team/mentor.png"> |
+| 팀장 | 멘티 | 멘티 | 멘티 | 멘티 | 멘토 |
 | • 통합 환경 구축 <br> • 서버·Jetson 연동 | • 월드 모델 구성 <br> • Cosmos LoRA 파인튜닝 | • 강화 학습 <br> • PPO 절개 정책 학습 | • 하드웨어 제작 <br> • 양팔 로봇·도구 어댑터 | • 비전 인식 <br> • 절개선 검출·좌표 보정 | • 프로젝트 멘토 <br> • 기술 자문 |
 | ![Leader](https://img.shields.io/badge/Team-Leader-blue) <br> ![Integration](https://img.shields.io/badge/System-Integration-lightseagreen) | ![WM](https://img.shields.io/badge/World-Model-76B900) <br> ![Cosmos](https://img.shields.io/badge/Cosmos-LoRA-orange) | ![RL](https://img.shields.io/badge/RL-Isaac%20Lab-76B900) <br> ![PPO](https://img.shields.io/badge/PPO-Policy-orange) | ![HW](https://img.shields.io/badge/HW-Fabrication-brown) <br> ![Robot](https://img.shields.io/badge/DOFBOT-Robot-black) | ![Vision](https://img.shields.io/badge/Vision-Recognition-red) <br> ![Calib](https://img.shields.io/badge/Camera-Calibration-yellowgreen) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
 
@@ -173,7 +175,9 @@ stateDiagram-v2
 ## **💡4. 작품 소개영상**
 > <sub>이미지를 클릭하면 유튜브 시연 영상을 보실 수 있습니다.</sub>
 
-[![월드 모델 기반 수술 어시스턴트 로봇 시연](assets/images/thumbnail.png)](https://www.youtube.com/watch?v=VIDEO_ID)
+[![월드 모델 기반 수술 어시스턴트 로봇 시연](https://img.youtube.com/vi/k7HaMJAGI6U/maxresdefault.jpg)](https://www.youtube.com/watch?v=k7HaMJAGI6U)
+
+▶ 시연 영상 바로가기 : https://www.youtube.com/watch?v=k7HaMJAGI6U
 
 ---
 
