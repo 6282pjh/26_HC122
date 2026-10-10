@@ -17,7 +17,7 @@
 - **프로젝트 명** : 월드 모델 기반 행동 사전 시뮬레이션을 제공하는 수술 어시스턴트 로봇
 - **프로젝트 정의** : 집도의의 음성 명령을 받으면 월드 모델(NVIDIA Cosmos)이 로봇 행동 이후의 미래 장면을 **실행 전에 영상으로 예측**하고, 집도의가 이를 검토·승인한 경우에만 양팔 로봇이 절개·개복 등의 수술 보조 동작을 수행하는 **Human-in-the-loop 수술 보조 시스템**
 
-  <img width="700" alt="수술 실험 세트장 구성" src="assets/images/setup.png" /></br>
+  <img width="700" alt="수술 실험 세트장 구성" src="images/setup.png" /></br>
 
 **1-2. 개발 배경 및 필요성**
 - **VLA 로봇의 블랙박스 문제** : 최근 VLA(Vision-Language-Action) 기반 로봇은 행동이 실제 환경에서 어떤 결과를 낼지 실행 전에 확인할 수 없습니다. 작은 오차도 조직 손상으로 이어지는 수술 환경에서는 치명적인 한계입니다.
@@ -40,8 +40,8 @@
     <td align="center"><b>② 음성 명령 · 환경 인식</b></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/images/feature_worldmodel.png" width="300"></td>
-    <td align="center"><img src="assets/images/feature_stt.png" width="300"></td>
+    <td align="center"><img src="images/feature_worldmodel.png" width="300"></td>
+    <td align="center"><img src="images/feature_stt.png" width="300"></td>
   </tr>
   <tr>
     <td align="center">실촬영 데이터로 LoRA 파인튜닝한 Cosmos-Predict2.5-2B가<br>현재 수술 장면 1장으로 약 5.8초의 미래 행동 영상 생성<br>(Image2World, 960×528, 16fps, 93프레임)</td>
@@ -52,8 +52,8 @@
     <td align="center"><b>④ 강화학습 기반 로봇 실행</b></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/images/feature_console.png" width="300"></td>
-    <td align="center"><img src="assets/images/feature_robot.png" width="300"></td>
+    <td align="center"><img src="images/feature_console.png" width="300"></td>
+    <td align="center"><img src="images/feature_robot.png" width="300"></td>
   </tr>
   <tr>
     <td align="center">명령 → 생성 중 → 검토의 3화면 구조,<br>3초 이내 2회 연속 탭으로만 승인<br>(iPad Safari 실기 검증)</td>
@@ -98,7 +98,7 @@
 
 | **팀장** | **멘티1** | **멘티2** | **멘티3** | **멘티4** | **멘토** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| <img width="110" src="assets/images/team/leader.png"> | <img width="110" src="assets/images/team/mentee1.png"> | <img width="110" src="assets/images/team/mentee2.png"> | <img width="110" src="assets/images/team/mentee3.png"> | <img width="110" src="assets/images/team/mentee4.png"> | <img width="110" src="assets/images/team/mentor.png"> |
+| <img width="110" src="images/team/leader.png"> | <img width="110" src="images/team/mentee1.png"> | <img width="110" src="images/team/mentee2.png"> | <img width="110" src="images/team/mentee3.png"> | <img width="110" src="images/team/mentee4.png"> | <img width="110" src="images/team/mentor.png"> |
 | • 통합환경 구축 <br> • 서버 연동 <br> • Jetson 연동 | • 월드모델 구성 <br> • LoRA 학습 | • 강화 학습 <br> • PPO 절개정책 | • 하드웨어 제작 <br> • 양팔 로봇 <br> • 도구 어댑터 | • 비전 인식 <br> • 절개선 검출 <br> • 좌표 보정 | • 프로젝트 멘토 <br> • 기술 자문 |
 | ![Leader](https://img.shields.io/badge/Team-Leader-blue) | ![WM](https://img.shields.io/badge/World-Model-76B900) | ![RL](https://img.shields.io/badge/RL-PPO-orange) | ![HW](https://img.shields.io/badge/HW-DOFBOT-brown) | ![Vision](https://img.shields.io/badge/Vision-Calib-red) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
 
@@ -108,13 +108,13 @@
 
 | **3-1. 서비스 흐름도** |
 |---|
-| [<img src="assets/diagrams/service_flow.png" width="700" alt="서비스 흐름도">](assets/diagrams/service_flow.png) |
+| [<img src="images/diagrams/service_flow.png" width="700" alt="서비스 흐름도">](images/diagrams/service_flow.png) |
 
 집도의가 앱에서 음성으로 명령하면 ① Gemini E 카메라가 현재 수술대를 촬영해 서버로 올리고, ② 음성은 STT와 LLM을 거쳐 행동 프롬프트로 바뀝니다. 서버의 Cosmos-Predict2.5-2B가 두 입력으로 시뮬레이션 영상을 생성해 돌려주면, 집도의가 검토 후 **승인한 경우에만** 다음 작업(로봇 실행)으로 진행합니다.
 
 | **3-2. S/W 구성도** |
 |---|
-| [<img src="assets/diagrams/sw_architecture.png" width="700" alt="S/W 구성도">](assets/diagrams/sw_architecture.png) |
+| [<img src="images/diagrams/sw_architecture.png" width="700" alt="S/W 구성도">](images/diagrams/sw_architecture.png) |
 
 시스템은 **태블릿 · 카메라 노트북 · GPU 서버 · Jetson 제어부**의 4개 노드로 나뉘어 동작합니다. 카메라 노트북과 Jetson은 외부에서 직접 접속할 수 있는 주소가 없기 때문에, 서버가 상태 파일에 명령을 **게시**하고 각 장치가 1~1.5초 주기로 이를 **조회(polling)** 해 가는 단방향 구조로 설계했습니다. 서버는 명령을 게시할 수만 있고, 실제 실행 여부는 로봇이 최종 판단합니다. 태블릿 접속은 Tailscale Funnel을 통한 HTTPS로 제공됩니다.
 
@@ -129,7 +129,7 @@
 
 | **3-3. H/W 구성도** |
 |---|
-| [<img src="assets/diagrams/hw_architecture.png" width="700" alt="H/W 구성도">](assets/diagrams/hw_architecture.png) |
+| [<img src="images/diagrams/hw_architecture.png" width="700" alt="H/W 구성도">](images/diagrams/hw_architecture.png) |
 
 - 수술대 좌우에 6축 **Yahboom DOFBOT ×2** 배치 — 우측은 Scalpel Adapter로 절개, 좌측은 조직 고정·개복 보조
 - 두 DOFBOT 확장보드가 동일한 I2C 주소(0x15)를 사용하므로 Jetson의 **Bus 1(좌) / Bus 8(우)** 로 물리적으로 분리해 독립 제어
@@ -153,7 +153,7 @@ stateDiagram-v2
 
 | **3-4. 엔티티 관계도** |
 |---|
-| [<img src="assets/diagrams/erd.png" width="700" alt="엔티티 관계도">](assets/diagrams/erd.png) |
+| [<img src="images/diagrams/erd.png" width="700" alt="엔티티 관계도">](images/diagrams/erd.png) |
 
 하나의 음성 명령(`USER_COMMAND`)에서 STT 결과 · 장면 이미지 · 검토 작업(`REVIEW_JOB`)이 파생되고, 검토 작업에 시뮬레이션 영상(`SIM_VIDEO`)과 승인(`APPROVAL`)이 연결됩니다. 승인된 작업만 로봇 명령(`ROBOT_COMMAND`)이 되며, 로봇의 응답(`ROBOT_ACK`)이 시스템 상태(`SYSTEM_STATE`)를 갱신합니다. 장면 이미지는 캘리브레이션 정보(`CALIBRATION_PROFILE`)를 거쳐 절개 목표 좌표(`TARGET_COORDINATE`)로 변환되어 로봇 명령에 첨부됩니다.
 
@@ -348,17 +348,21 @@ def save_captured_image(job_id, file_storage):
 
 ```
 26_HC122
-├── assets/          # README 이미지, 구성도, 시연 영상 썸네일
-├── configs/         # 학습·추론 설정
-├── data/            # 샘플 데이터 (원본 영상·체크포인트는 용량 문제로 미포함)
-├── docs/            # 제안서, 서버 매뉴얼, 회의록, 참고 문헌
-├── jetson/          # Jetson 로봇 제어 (ros2_ws)
-├── notebooks/       # 실험 노트북
-├── results/         # 실험 결과 요약
-├── scripts/         # 환경 점검 스크립트
-├── server/          # GPU 서버 실행 환경
-└── src/             # 데이터셋 · 모델 · 비전 · 시뮬레이션 · 웹 API 등 모듈
+├── images/              # README 이미지
+│   ├── diagrams/        # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
+│   └── team/            # 팀원 사진
+├── src/
+│   ├── gpu_server/      # Flask 웹 승인 콘솔, STT·LLM·Cosmos 리스너, 촬영 브리지
+│   ├── camera_client/   # 카메라 노트북 촬영 클라이언트 (Orbbec Gemini E)
+│   ├── world_model/     # Cosmos-Predict2.5-2B LoRA 학습·추론
+│   ├── jetson_control/  # Jetson 양팔 DOFBOT 제어, 상태 시퀀스
+│   ├── rl_policy/       # Isaac Lab PPO 절개 정책
+│   └── vision/          # 절개선 검출, Homography 좌표 보정
+├── requirements.txt
+└── README.md
 ```
+
+> 모델 가중치, 학습 영상, 체크포인트는 용량과 라이선스 문제로 저장소에 포함하지 않습니다.
 
 ---
 
