@@ -1,9 +1,8 @@
 # [2026년 한이음 드림업 공모전] 26_HC122
 
 <p align="center">
-  <img src="assets/images/main.png" width="720" alt="프로젝트 대표 이미지"><br>
-  <b>Predict → Approve → Act</b><br>
-  <sub>로봇이 움직이기 전에, 무엇을 할지 먼저 영상으로 보여주는 수술 어시스턴트 로봇</sub>
+  <img src="assets/images/overview.png" width="720" alt="수술 보조 세트장 실물 사진"><br>
+  <sub>월드 모델 기반 행동 사전 시뮬레이션을 제공하는 수술 어시스턴트 로봇</sub>
 </p>
 
 <p align="center">
@@ -22,8 +21,6 @@
 **1-1. 프로젝트 소개**
 - **프로젝트 명** : 월드 모델 기반 행동 사전 시뮬레이션을 제공하는 수술 어시스턴트 로봇
 - **프로젝트 정의** : 집도의의 음성 명령을 받으면 월드 모델(NVIDIA Cosmos)이 로봇 행동 이후의 미래 장면을 **실행 전에 영상으로 예측**하고, 집도의가 이를 검토·승인한 경우에만 양팔 로봇이 절개·개복 등의 수술 보조 동작을 수행하는 **Human-in-the-loop 수술 보조 시스템**
-
-  <img width="700" alt="시스템 실물 사진" src="assets/images/overview.png" /></br>
 
 **1-2. 개발 배경 및 필요성**
 - **VLA 로봇의 블랙박스 문제** : 최근 VLA(Vision-Language-Action) 기반 로봇은 행동이 실제 환경에서 어떤 결과를 낼지 실행 전에 확인할 수 없습니다. 작은 오차도 조직 손상으로 이어지는 수술 환경에서는 치명적인 한계입니다.
