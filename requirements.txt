@@ -1,9 +1,10 @@
-numpy
-pandas
-matplotlib
+# GPU 서버 (gpu_server, world_model)
+torch==2.6.0
+transformers==4.52.4
+# diffusers 0.38.0 : LoRA 지원 브랜치 소스 설치 (world_model/README 참고)
+openai-whisper
+groq
+flask
 opencv-python
-pyyaml
-tqdm
-scikit-learn
-jupyter
-notebook
+pillow
+numpy
