@@ -1,11 +1,6 @@
 # [2026년 한이음 드림업 공모전] 26_HC122
 
 <p align="center">
-  <img src="assets/images/overview.png" width="720" alt="수술 보조 세트장 실물 사진"><br>
-  <sub>월드 모델 기반 행동 사전 시뮬레이션을 제공하는 수술 어시스턴트 로봇</sub>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/NVIDIA-Cosmos--Predict2.5--2B-76B900?style=flat&logo=nvidia&logoColor=white">
   <img src="https://img.shields.io/badge/Fine--tuning-LoRA%20(rank%208)-orange?style=flat">
   <img src="https://img.shields.io/badge/RL-Isaac%20Lab%20%2B%20PPO-76B900?style=flat&logo=nvidia&logoColor=white">
@@ -21,6 +16,8 @@
 **1-1. 프로젝트 소개**
 - **프로젝트 명** : 월드 모델 기반 행동 사전 시뮬레이션을 제공하는 수술 어시스턴트 로봇
 - **프로젝트 정의** : 집도의의 음성 명령을 받으면 월드 모델(NVIDIA Cosmos)이 로봇 행동 이후의 미래 장면을 **실행 전에 영상으로 예측**하고, 집도의가 이를 검토·승인한 경우에만 양팔 로봇이 절개·개복 등의 수술 보조 동작을 수행하는 **Human-in-the-loop 수술 보조 시스템**
+
+  <img width="700" alt="수술 실험 세트장 구성" src="assets/images/setup.png" /></br>
 
 **1-2. 개발 배경 및 필요성**
 - **VLA 로봇의 블랙박스 문제** : 최근 VLA(Vision-Language-Action) 기반 로봇은 행동이 실제 환경에서 어떤 결과를 낼지 실행 전에 확인할 수 없습니다. 작은 오차도 조직 손상으로 이어지는 수술 환경에서는 치명적인 한계입니다.
@@ -122,11 +119,7 @@
 
 시스템은 **태블릿 · 카메라 노트북 · GPU 서버 · Jetson 제어부**의 4개 노드로 나뉘어 동작합니다. 카메라 노트북과 Jetson은 외부에서 직접 접속할 수 있는 주소가 없기 때문에, 서버가 상태 파일에 명령을 **게시**하고 각 장치가 1~1.5초 주기로 이를 **조회(polling)** 해 가는 단방향 구조로 설계했습니다. 서버는 명령을 게시할 수만 있고, 실제 실행 여부는 로봇이 최종 판단합니다. 태블릿 접속은 Tailscale Funnel을 통한 HTTPS로 제공됩니다.
 
-| **3-3. 월드 모델 흐름도** |
-|---|
-| [<img src="assets/diagrams/worldmodel_flow.png" width="700" alt="월드 모델 흐름도">](assets/diagrams/worldmodel_flow.png) |
-
-명령 시점에 촬영한 **정지 이미지 1장**과 음성 명령에서 변환된 **영어 행동 프롬프트**를 조건으로, 촬영 환경을 학습시킨 LoRA 어댑터(rank 8)를 얹은 Cosmos-Predict2.5-2B가 이후 동작을 예측합니다(Image2World). 결과는 960×528 · 16fps · 93프레임(약 5.8초) 영상으로 웹 콘솔에 표시됩니다.
+월드 모델이 만든 예측 영상은 판단 근거로만 쓰고, 실제 로봇 제어는 별도 계통에서 수행합니다.
 
 | 계통 | 입력 | 출력 | 역할 |
 |---|---|---|---|
@@ -135,7 +128,7 @@
 
 > 두 계통을 잇는 것은 로봇 제어 데이터가 아니라 **집도의의 승인 신호** 하나뿐입니다. 생성 영상은 픽셀 결과물이라 실제 좌표나 깊이 정보가 아니므로, 영상 속 로봇팔 위치를 제어값으로 쓰지 않습니다.
 
-| **3-4. H/W 구성도** |
+| **3-3. H/W 구성도** |
 |---|
 | [<img src="assets/diagrams/hw_architecture.png" width="700" alt="H/W 구성도">](assets/diagrams/hw_architecture.png) |
 
@@ -159,7 +152,7 @@ stateDiagram-v2
 
 > 현재 상태에서 허용되지 않는 명령은 로봇이 자체적으로 거부합니다. 서버가 잘못된 순서의 명령을 보내더라도 실제 동작으로 이어지지 않는 이중 안전 구조입니다.
 
-| **3-5. 엔티티 관계도** |
+| **3-4. 엔티티 관계도** |
 |---|
 | [<img src="assets/diagrams/erd.png" width="700" alt="엔티티 관계도">](assets/diagrams/erd.png) |
 
