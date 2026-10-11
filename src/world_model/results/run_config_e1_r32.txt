@@ -1,0 +1,5 @@
+run=e1_r32 date=2026-10-05T22:17:22+00:00 host=lab-4090x2 gpu=0 nproc=1
+data=$PROJECT_ROOT/data/dataset/train cache=$PROJECT_ROOT/data/cache/train_432x768 clips=18 epochs=110 optimizer_steps=1980 sched_steps=1980 ckpt_epochs=28
+res=432x768 frames=93 rank=32 alpha=32 lr=1e-4 warmup=99 f_max=1.0 f_min=0.2
+conditional_frames_probs={"1": 1.0} seed=0 script=train_lora_4090.py
+diffusers=13cfbb039

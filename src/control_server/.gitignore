@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.env
+
+# 실행 중 생기는 데이터 (음성·캡처·결과·상태 파일)
+inputs/incoming/*
+inputs/processed/*
+capture_bridge/captures/*
+capture_bridge/capture_command.json
+robot_bridge/*
+outputs/*
+!**/.gitkeep
+
+# 대용량 미디어 (데모 영상은 로컬에만 둠)
+*.mp4
+*.wav
+*.zip
+
+# 미리 계산한 텍스트 임베딩 (파일당 약 103MB, tools/make_embeds.py로 서버에서 생성)
+assets/prompt_embeds/
+*.pt

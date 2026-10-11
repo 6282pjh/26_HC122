@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>낭만닥터 · {{ job_id }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="bar">
+    <div class="who">
+      <b>낭만닥터 · 행동 예측 콘솔</b>
+      <span class="case mono">{{ job_id }}</span>
+    </div>
+    <div class="lamp live" id="lamp"><i></i><span id="lampTxt">상태 확인 중</span></div>
+  </header>
+
+  <!-- ============ 생성 중 ============ -->
+  <section id="working" class="screen" style="display:none">
+    <div class="track">
+      <div class="tick" id="t0"><div class="n mono">01</div><div class="l">음성 인식</div></div>
+      <div class="tick" id="t1"><div class="n mono">02</div><div class="l">동작 해석</div></div>
+      <div class="tick" id="t2"><div class="n mono">03</div><div class="l">예측 영상 생성</div></div>
+      <div class="tick" id="t3"><div class="n mono">04</div><div class="l">집도의 검토</div></div>
+    </div>
+
+    <div id="generationPreview"
+         style="display:none; width:100%; margin-bottom:24px; text-align:center;">
+
+      <div style="
+          max-width:760px;
+          margin:0 auto;
+          border-radius:18px;
+          overflow:hidden;
+          background:#111;
+      ">
+        <img
+          id="sourceImage"
+          alt="현재 촬영된 수술 환경"
+          style="
+              display:block;
+              width:100%;
+              max-height:430px;
+              object-fit:contain;
+              background:#111;
+          "
+        >
+      </div>
+
+      <div style="margin-top:18px;">
+        <div style="font-size:20px; font-weight:700;">
+          현재 촬영된 수술 환경을 바탕으로
+          예측 영상을 생성하고 있습니다.
+        </div>
+
+        <div
+          id="generationRemaining"
+          class="mono"
+          style="margin-top:9px; opacity:.7;"
+        >
+          환경 분석 중...
+        </div>
+      </div>
+    </div>
+
+    <div id="directRobotPanel" class="direct-robot-panel" style="display:none">
+      <div class="direct-robot-title">수술 완료 명령을 로봇에 전달했습니다.</div>
+      <div id="directRobotStatusText" class="direct-robot-status">로봇 실행 대기</div>
+      <div class="direct-robot-sub">실제 로봇 상태를 확인하고 있습니다.</div>
+    </div>
+
+    <div class="work-body">
+      <div class="verify">
+        <div class="field">
+          <label>인식된 명령</label>
+          <div class="val" id="sttVal">대기 중...</div>
+        </div>
+        <div class="field">
+          <label>모델에 전달된 동작</label>
+          <div class="val en" id="promptVal">대기 중...</div>
+        </div>
+        <div class="flag" id="flagBox" style="display:none">
+          <b>확인</b>
+          <div>인식된 동작과 전달된 동작이 일치하는지 확인하세요. 다르면 지금 취소하세요.</div>
+        </div>
+      </div>
+
+      <div class="meter">
+        <div class="cap">경과 시간</div>
+        <div class="big mono" id="elapsed">00:00</div>
+        <div class="sub"><br>완료되면 화면이 자동으로 바뀝니다.</div>
+        <div class="bar"><i id="barFill"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 검토 ============ -->
+  <section id="review" class="screen" style="display:none">
+    <div class="review-body">
+      <div class="viewer">
+        <video id="resultVideo" controls></video>
+      </div>
+
+      <div class="side">
+        <div class="recap">
+          <div class="k mono">인식된 명령</div>
+          <div id="recapStt"></div>
+          <div class="k mono" style="margin-top:12px">전달된 동작</div>
+          <div class="en" id="recapPrompt"></div>
+        </div>
+
+        <div class="acts">
+          <button class="btn btn-go" id="approveBtn">
+            <span id="approveTxt">이 동작 승인<small>탭하면 한 번 더 확인합니다</small></span>
+          </button>
+          <button class="btn btn-hold" id="rejectBtn">거부하고 다시 말하기</button>
+          <button class="btn btn-stop" id="estopBtn">긴급 정지</button>
+        </div>
+        <div class="decided" id="decidedBox" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bar">
+    <span class="mono" id="jobline">{{ job_id }}</span>
+    <a class="mono" href="/" style="color:inherit">새 명령</a>
+  </footer>
+
+  <script>
+    const jobId = "{{ job_id }}";
+    const startTs = Date.now();
+    let currentStage = null;
+    let videoInitialized = false;
+
+    const el = {
+      working: document.getElementById('working'),
+      review: document.getElementById('review'),
+      lamp: document.getElementById('lamp'),
+      lampTxt: document.getElementById('lampTxt'),
+      sttVal: document.getElementById('sttVal'),
+      promptVal: document.getElementById('promptVal'),
+      flagBox: document.getElementById('flagBox'),
+      elapsed: document.getElementById('elapsed'),
+      recapStt: document.getElementById('recapStt'),
+      recapPrompt: document.getElementById('recapPrompt'),
+      resultVideo: document.getElementById('resultVideo'),
+      decidedBox: document.getElementById('decidedBox'),
+      generationPreview: document.getElementById('generationPreview'),
+      sourceImage: document.getElementById('sourceImage'),
+      generationRemaining: document.getElementById('generationRemaining'),
+      directRobotPanel: document.getElementById('directRobotPanel'),
+      directRobotStatusText: document.getElementById('directRobotStatusText'),
+      track: document.querySelector('#working .track'),
+      workBody: document.querySelector('#working .work-body'),
+    };
+
+    const TICKS = ['t0', 't1', 't2', 't3'];
+
+    // stage -> 몇 번째 tick까지 done, 몇 번째가 now
+    const STAGE_INDEX = {
+      queued: 0,
+      stt_done: 1,
+      prompt_done: 2,
+      generating: 2,
+      review: 3,
+      robot_direct: 3,
+      unknown: 0
+    };
+
+    function setTicks(stage) {
+      const idx = STAGE_INDEX[stage] ?? 0;
+
+      TICKS.forEach((id, i) => {
+        const node = document.getElementById(id);
+
+        node.classList.remove('done', 'now');
+
+        if (i < idx) {
+          node.classList.add('done');
+        } else if (i === idx) {
+          node.classList.add('now');
+        }
+      });
+    }
+
+    function fmtElapsed() {
+      const s = Math.floor((Date.now() - startTs) / 1000);
+      const m = String(Math.floor(s / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
+
+      return m + ':' + ss;
+    }
+
+    setInterval(() => {
+      el.elapsed.textContent = fmtElapsed();
+    }, 1000);
+
+    function showWorking() {
+      el.working.style.display = 'flex';
+      el.review.style.display = 'none';
+
+      el.lamp.className = 'lamp live';
+      el.lampTxt.textContent = '생성 중 · 로봇 대기';
+    }
+
+    function showGenerating(data) {
+      el.working.style.display = 'flex';
+      el.review.style.display = 'none';
+      el.generationPreview.style.display = 'block';
+
+      el.lamp.className = 'lamp live';
+      el.lampTxt.textContent = '예측 영상 생성 중 · 로봇 대기';
+
+      // 실제 Gemini E 촬영 이미지
+      // 최초 요청이 너무 빨라 실패할 수 있으므로 성공할 때까지 재시도
+      if (el.sourceImage.dataset.loaded !== '1') {
+        el.sourceImage.src =
+          '/source-image/' + jobId + '?v=' + Date.now();
+
+        el.sourceImage.onload = () => {
+          el.sourceImage.dataset.loaded = '1';
+          console.log('[SOURCE IMAGE] loaded:', jobId);
+        };
+
+        el.sourceImage.onerror = () => {
+          el.sourceImage.dataset.loaded = '0';
+          console.warn('[SOURCE IMAGE] retry:', jobId);
+        };
+      }
+
+      const started = Number(data.generation_started_at || 0);
+      const duration = Number(data.generation_duration_sec || 180);
+
+      if (started > 0) {
+        const now = Date.now() / 1000;
+        const elapsed = Math.max(0, now - started);
+        const remain = Math.max(0, Math.ceil(duration - elapsed));
+
+        const m = String(Math.floor(remain / 60)).padStart(2, '0');
+        const s = String(remain % 60).padStart(2, '0');
+
+        el.generationRemaining.textContent =
+          '예측 영상 생성 중 · 약 ' + m + ':' + s + ' 남음';
+
+        const progress =
+          Math.min(100, Math.max(0, (elapsed / duration) * 100));
+
+        document.getElementById('barFill').style.width =
+          progress + '%';
+      }
+    }
+
+
+    function showReview(data) {
+      el.working.style.display = 'none';
+      el.review.style.display = 'flex';
+
+      el.lamp.className = 'lamp hot';
+      el.lampTxt.textContent = '승인 대기 · 로봇 대기';
+
+      el.recapStt.textContent = data.stt_text || '(기록 없음)';
+      el.recapPrompt.textContent = data.prompt_text || '(기록 없음)';
+
+      // 영상은 최초 1회만 로드
+      // URL 뒤에 timestamp를 붙여 Safari 캐시 방지
+      if (!videoInitialized) {
+        el.resultVideo.src = '/video/' + jobId + '?v=' + Date.now();
+        videoInitialized = true;
+      }
+
+      if (data.decision) {
+        el.decidedBox.style.display = 'block';
+        el.decidedBox.textContent = data.decision_label || data.decision;
+      }
+    }
+
+
+    function showDirectRobotStatus(data) {
+      el.working.style.display = 'flex';
+      el.review.style.display = 'none';
+      el.generationPreview.style.display = 'none';
+
+      if (el.track) el.track.style.display = 'none';
+      if (el.workBody) el.workBody.style.display = 'none';
+      el.directRobotPanel.style.display = 'block';
+
+      const status = data.robot_status || 'approved';
+
+      if (status === 'approved') {
+        el.directRobotStatusText.textContent = '로봇 실행 대기';
+      } else if (status === 'running') {
+        el.directRobotStatusText.textContent = '로봇 실행 중';
+      } else if (status === 'done') {
+        el.directRobotStatusText.textContent =
+          '동작 완료 · 잠시 후 처음 화면으로 돌아갑니다.';
+      } else if (status === 'error') {
+        el.directRobotStatusText.textContent =
+          '로봇 동작 오류 · ' + (data.robot_message || '상태를 확인해주세요.');
+      }
+    }
+
+    function restoreNormalJobLayout() {
+      el.directRobotPanel.style.display = 'none';
+      if (el.track) el.track.style.display = '';
+      if (el.workBody) el.workBody.style.display = '';
+    }
+
+    // Jetson 로봇 실행 상태를 화면에 반영
+    function showRobotStatus(data) {
+        const status = data.robot_status;
+
+        if (!status) return;
+
+        const approveBtn = document.getElementById('approveBtn');
+        const rejectBtn = document.getElementById('rejectBtn');
+
+        if (status === 'approved') {
+            el.lamp.className = 'lamp hot';
+            el.lampTxt.textContent = '승인됨 · 로봇 실행 대기';
+
+            el.decidedBox.style.display = 'block';
+            el.decidedBox.textContent =
+                '승인되었습니다. 로봇 실행을 준비하고 있습니다.';
+
+            if (approveBtn) approveBtn.disabled = true;
+            if (rejectBtn) rejectBtn.disabled = true;
+        }
+
+        else if (status === 'running') {
+            el.lamp.className = 'lamp live';
+            el.lampTxt.textContent = '로봇 실행 중';
+
+            el.decidedBox.style.display = 'block';
+            el.decidedBox.textContent =
+                '로봇이 동작 중입니다. 잠시 기다려주세요.';
+
+            if (approveBtn) approveBtn.disabled = true;
+            if (rejectBtn) rejectBtn.disabled = true;
+        }
+
+        else if (status === 'done') {
+            el.lamp.className = 'lamp live';
+            el.lampTxt.textContent = '동작 완료';
+
+            el.decidedBox.style.display = 'block';
+            el.decidedBox.textContent =
+                '동작이 완료되었습니다.';
+
+            if (!window.robotDoneRedirectScheduled) {
+                window.robotDoneRedirectScheduled = true;
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+            }
+        }
+
+        else if (status === 'error') {
+            el.lamp.className = 'lamp hot';
+            el.lampTxt.textContent = '로봇 동작 오류';
+
+            el.decidedBox.style.display = 'block';
+            el.decidedBox.textContent =
+                '로봇 동작 중 오류가 발생했습니다. ' +
+                (data.robot_message || '');
+
+            if (approveBtn) approveBtn.disabled = true;
+        }
+    }
+
+    async function poll() {
+      try {
+        const res = await fetch('/status/' + jobId);
+
+        if (!res.ok) {
+          return;
+        }
+
+        const data = await res.json();
+
+        currentStage = data.stage;
+
+        if (data.stt_text) {
+          el.sttVal.textContent = data.stt_text;
+        }
+
+        if (data.prompt_text) {
+          el.promptVal.textContent = data.prompt_text;
+          el.flagBox.style.display = 'flex';
+        }
+
+        setTicks(data.stage);
+
+        const directSurgeryComplete =
+          data.robot_action === 'surgery_complete' &&
+          (
+            data.stage === 'robot_direct' ||
+            ['approved', 'running', 'done', 'error'].includes(data.robot_status)
+          );
+
+        if (directSurgeryComplete) {
+          // 수술 완료는 예측 영상/승인 화면 없이 로봇 상태만 표시한다.
+          showDirectRobotStatus(data);
+        } else {
+          restoreNormalJobLayout();
+
+          // MP4 파일이 존재한다는 이유만으로 review로 넘어가지 않는다.
+          // worker에서 faststart까지 끝난 뒤 stage="review"가 기록됐을 때만 전환.
+          if (data.stage === 'review') {
+            el.generationPreview.style.display = 'none';
+            showReview(data);
+
+          } else if (data.stage === 'generating') {
+            showGenerating(data);
+
+          } else {
+            el.generationPreview.style.display = 'none';
+            showWorking();
+          }
+        }
+
+        // Jetson의 approved/running/done/error 상태를 화면에 반영
+        // done 상태이면 기존 로직대로 3초 후 첫 녹음 화면(/)으로 복귀한다.
+        showRobotStatus(data);
+
+      } catch (e) {
+        /* 네트워크 순간 끊김은 무시하고 다음 폴링에서 재시도 */
+      }
+    }
+
+    poll();
+    setInterval(poll, 1500);
+
+    // ---- 검토 화면 액션 ----
+    async function decide(action) {
+      const res = await fetch('/decision/' + jobId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        el.decidedBox.style.display = 'block';
+        el.decidedBox.textContent = data.label;
+
+        el.lampTxt.textContent =
+          action === 'approve'
+            ? '승인됨'
+            : (
+                action === 'reject'
+                  ? '거부됨'
+                  : '긴급정지 요청됨'
+              );
+      }
+    }
+
+    document
+      .getElementById('rejectBtn')
+      .addEventListener('click', () => decide('reject'));
+
+    document
+      .getElementById('estopBtn')
+      .addEventListener('click', () => decide('estop'));
+
+    // 승인은 2단계 확인 (로봇 코드의 'E 두 번 눌러 실행' 규칙과 동일하게)
+    const approveBtn = document.getElementById('approveBtn');
+    const approveTxt = document.getElementById('approveTxt');
+
+    let armed = false;
+    let armTimer = null;
+
+    approveBtn.addEventListener('click', () => {
+      if (!armed) {
+        armed = true;
+
+        approveBtn.classList.add('arm');
+
+        approveTxt.innerHTML =
+          '한 번 더 눌러 실행<small>3초 안에 누르지 않으면 취소됩니다</small>';
+
+        armTimer = setTimeout(() => {
+          armed = false;
+
+          approveBtn.classList.remove('arm');
+
+          approveTxt.innerHTML =
+            '이 동작 승인<small>탭하면 한 번 더 확인합니다</small>';
+        }, 3000);
+
+      } else {
+        clearTimeout(armTimer);
+
+        armed = false;
+
+        approveBtn.classList.remove('arm');
+
+        decide('approve');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,10 +1,21 @@
-# GPU 서버 (gpu_server, world_model)
+# 서브시스템별 상세 설치는 각 폴더 README 참고
+#
+# [src/control_server, src/world_model — GPU 서버, Python 3.10, CUDA 12.4]
+#   torch·diffusers 포크는 src/world_model/server_kit/setup_env.sh 가 고정 버전으로 설치한다.
+#   (diffusers: terarachang/diffusers, 브랜치 cosmos_predict_2.5_lora_clean, 커밋 13cfbb039)
 torch==2.6.0
 transformers==4.52.4
-# diffusers 0.38.0 : LoRA 지원 브랜치 소스 설치 (world_model/README 참고)
+peft==0.19.1
+accelerate==1.14.0
 openai-whisper
 groq
 flask
-opencv-python
 pillow
+imageio
+imageio-ffmpeg
+#
+# [src/camera_client, src/world_model/tools — 카메라 노트북(Windows)]
+opencv-python
 numpy
+requests
+matplotlib
