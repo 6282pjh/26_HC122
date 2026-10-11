@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>낭만닥터 · 명령</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="bar">
+    <div class="who">
+      <b>낭만닥터 · 행동 예측 콘솔</b>
+    </div>
+    <div class="lamp live"><i></i><span>로봇 대기 · 토크 해제</span></div>
+  </header>
+
+  <main class="stage-center">
+    <div class="prompt-line">
+      <h1>다음 동작을 말해주세요</h1>
+      <p>말한 내용을 먼저 예측 영상으로 만들어 보여드립니다.<br>승인 전에는 로봇이 움직이지 않습니다.</p>
+    </div>
+
+    <button class="mic" id="micBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3zm7 9v1a7 7 0 0 1-6 6.93V22h-2v-3.07A7 7 0 0 1 5 12v-1h2v1a5 5 0 0 0 10 0v-1h2z"/></svg>
+      <b id="micLabel">눌러서 녹음</b>
+    </button>
+
+    <div class="hint" id="hint"></div>
+
+  </div>
+  </main>
+
+  <script>
+const micBtn = document.getElementById('micBtn');
+const micLabel = document.getElementById('micLabel');
+const hint = document.getElementById('hint');
+
+let mediaRecorder = null;
+let chunks = [];
+let recording = false;
+let starting = false;
+let startedAt = 0;
+let activeStream = null;
+
+/* 한 번의 음성 명령과 카메라 촬영을 동일 job으로 묶는다. */
+let currentJobId = null;
+let cameraStartPromise = null;
+
+async function startCameraRecording() {
+    const res = await fetch('/capture/trigger', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+        throw new Error(data.error || '카메라 시작 요청 실패');
+    }
+
+    currentJobId = data.job_id;
+    console.log('[CAMERA] START', currentJobId);
+
+    return currentJobId;
+}
+
+async function stopCameraRecording(jobId) {
+    if (!jobId) return;
+
+    const res = await fetch('/capture/stop', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            job_id: jobId
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+        throw new Error(data.error || '카메라 종료 요청 실패');
+    }
+
+    console.log('[CAMERA] STOP', jobId);
+}
+
+function chooseMimeType() {
+    const candidates = [
+        'audio/mp4;codecs=mp4a.40.2',
+        'audio/mp4',
+        'audio/webm;codecs=opus',
+        'audio/webm'
+    ];
+
+    for (const type of candidates) {
+        if (window.MediaRecorder &&
+            MediaRecorder.isTypeSupported &&
+            MediaRecorder.isTypeSupported(type)) {
+            return type;
+        }
+    }
+    return '';
+}
+
+async function startRecording() {
+    if (starting || recording) return;
+
+    starting = true;
+    micBtn.disabled = true;
+    micLabel.textContent = '마이크 준비 중...';
+    hint.textContent = '';
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        activeStream = stream;
+        chunks = [];
+
+        const mimeType = chooseMimeType();
+
+        mediaRecorder = mimeType
+            ? new MediaRecorder(stream, { mimeType })
+            : new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                chunks.push(e.data);
+            }
+        };
+
+        mediaRecorder.onstart = () => {
+            startedAt = performance.now();
+
+            // 실제 음성 녹음 시작과 동시에 Gemini E 카메라 시작 요청
+            cameraStartPromise = startCameraRecording().catch((err) => {
+                console.error('[CAMERA START ERROR]', err);
+                hint.textContent = '카메라 시작 요청에 실패했습니다.';
+                return null;
+            });
+            recording = true;
+            starting = false;
+            micBtn.disabled = false;
+
+            micBtn.classList.add('rec');
+            micLabel.textContent = '녹음 중 · 눌러서 종료';
+            hint.textContent = '';
+        };
+
+        mediaRecorder.onerror = (e) => {
+            console.error('MediaRecorder error:', e);
+            hint.textContent = '녹음 중 오류가 발생했습니다.';
+        };
+
+        mediaRecorder.onstop = async () => {
+            recording = false;
+            starting = false;
+            micBtn.disabled = false;
+
+            if (activeStream) {
+                activeStream.getTracks().forEach(t => t.stop());
+                activeStream = null;
+            }
+
+            const type =
+                mediaRecorder.mimeType ||
+                mimeType ||
+                'audio/webm';
+
+            const blob = new Blob(chunks, { type });
+
+            if (blob.size === 0) {
+                hint.textContent = '녹음 데이터가 없습니다. 다시 시도해주세요.';
+                micLabel.textContent = '눌러서 녹음';
+                return;
+            }
+
+            // 카메라 STOP은 사용자가 종료 버튼을 누른 순간 이미 전송됨
+            const jobId = currentJobId;
+            submitRecording(blob, jobId);
+        };
+
+        // Safari에서도 중간 데이터를 지속적으로 받도록 함
+        mediaRecorder.start(250);
+
+    } catch (e) {
+        starting = false;
+        recording = false;
+        micBtn.disabled = false;
+
+        hint.textContent =
+            '마이크 권한을 허용해주세요. (' + e.message + ')';
+        micLabel.textContent = '눌러서 녹음';
+    }
+}
+
+async function stopRecording() {
+    if (!mediaRecorder || !recording) return;
+
+    const elapsed = performance.now() - startedAt;
+
+    // 실제 MediaRecorder 시작 이후 최소 1.5초 확보
+    if (elapsed < 1500) {
+        hint.textContent = '조금 더 말한 뒤 다시 눌러주세요.';
+        return;
+    }
+
+    recording = false;
+    micBtn.disabled = true;
+    micBtn.classList.remove('rec');
+    micLabel.textContent = '전송 중...';
+
+    // 사용자가 종료 버튼을 누르는 순간 Gemini E에도 STOP 요청
+    let jobId = currentJobId;
+
+    if (cameraStartPromise) {
+        try {
+            jobId = await cameraStartPromise;
+        } catch (e) {
+            console.error('[CAMERA JOB ERROR]', e);
+        }
+    }
+
+    console.log('[CAMERA] stop button clicked, job=', jobId);
+
+    try {
+        await stopCameraRecording(jobId);
+        console.log('[CAMERA] STOP request sent:', jobId);
+    } catch (e) {
+        console.error('[CAMERA STOP ERROR]', e);
+    }
+
+    if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+}
+
+async function submitRecording(blob, jobId) {
+    const fd = new FormData();
+
+    let ext = 'webm';
+    if (blob.type.includes('mp4') || blob.type.includes('aac')) {
+        ext = 'm4a';
+    } else if (blob.type.includes('ogg')) {
+        ext = 'ogg';
+    }
+
+    fd.append('audio', blob, 'command.' + ext);
+
+    if (jobId) {
+        fd.append('job_id', jobId);
+    }
+
+    try {
+        const res = await fetch('/submit', {
+            method: 'POST',
+            body: fd
+        });
+
+        const data = await res.json();
+
+        if (!data.ok) {
+            hint.textContent =
+                data.error || '요청 처리 중 오류가 발생했습니다.';
+            micLabel.textContent = '눌러서 녹음';
+            micBtn.disabled = false;
+            return;
+        }
+
+        window.location.href = '/job/' + data.job_id;
+
+    } catch (e) {
+        hint.textContent = '서버에 연결할 수 없습니다.';
+        micLabel.textContent = '눌러서 녹음';
+        micBtn.disabled = false;
+    }
+}
+
+micBtn.addEventListener('click', () => {
+    if (starting) return;
+
+    if (!recording) {
+        startRecording();
+    } else {
+        stopRecording();
+    }
+});
+  </script>
+</body>
+</html>
