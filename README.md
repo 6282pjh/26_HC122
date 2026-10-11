@@ -378,9 +378,11 @@ def save_captured_image(job_id, file_storage):
 │   │   ├── server_kit/         # 환경 설치, 캐시, 학습, 추론 (GPU 서버)
 │   │   ├── scripts/            # 평가 일괄 실행, 요약 시트
 │   │   └── results/            # 학습 설정 기록
-│   ├── jetson_control/         # Jetson 양팔 DOFBOT 제어, 상태 시퀀스
 │   ├── rl_policy/              # Isaac Lab PPO 절개 정책
-│   └── vision/                 # 절개선 검출, Homography 좌표 보정
+│   │   ├── INTERFACE.md        # 정책 입출력·배포 계약 (vision·jetson_control이 따름)
+│   │   └── deploy/             # 실제 로봇용 정책 실행부
+│   ├── vision/                 # 절개선 검출, Homography 좌표 보정 → 정책 입력
+│   └── jetson_control/         # Jetson 양팔 DOFBOT 제어, 상태 시퀀스, 실행 모드(policy / replay)
 ├── requirements.txt
 └── README.md
 ```
