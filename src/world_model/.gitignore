@@ -1,0 +1,8 @@
+# 노트북 데이터 도구 출력 (원본 촬영본·클립·자체 검사 결과)
+raw/
+dataset/
+_selftest/
+# 서버 작업 결과
+eval/
+lora_checkpoints/
+*.safetensors

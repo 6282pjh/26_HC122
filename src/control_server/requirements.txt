@@ -1,0 +1,15 @@
+# GPU 서버 (Python 3.10, CUDA 12.4 기준)
+# torch 2.6.0+cu124 는 PyTorch 공식 인덱스에서 설치:
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+# diffusers 는 Cosmos-Predict2.5 LoRA를 지원하는 포크를 소스 설치:
+#   git clone -b cosmos_predict_2.5_lora_clean https://github.com/terarachang/diffusers.git
+#   cd diffusers && git checkout 13cfbb039abfb4680bf1ba5269c93e1b6cab5dea && pip install -e .
+transformers==4.52.4
+peft==0.19.1
+accelerate==1.14.0
+openai-whisper
+groq
+flask
+pillow
+imageio
+imageio-ffmpeg
