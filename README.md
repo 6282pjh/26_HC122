@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/NVIDIA-Cosmos--Predict2.5--2B-76B900?style=flat&logo=nvidia&logoColor=white">
-  <img src="https://img.shields.io/badge/Fine--tuning-LoRA%20(rank%208)-orange?style=flat">
+  <img src="https://img.shields.io/badge/Fine--tuning-LoRA%20(rank%2016)-orange?style=flat">
   <img src="https://img.shields.io/badge/RL-Isaac%20Lab%20%2B%20PPO-76B900?style=flat&logo=nvidia&logoColor=white">
   <img src="https://img.shields.io/badge/Human--in--the--loop-2%E2%80%91step%20approval-blue?style=flat">
   <img src="https://img.shields.io/badge/Robot-Dual%20DOFBOT%20%2B%20Jetson-black?style=flat">
@@ -30,7 +30,7 @@
 - **예측계·제어계 분리** : 생성 영상은 판단 근거로만 쓰고 제어값으로 쓰지 않아, 생성 모델의 오류가 물리 동작으로 전달되지 않음
 - **일반화된 절개 정책** : 매 에피소드마다 무작위 절개선을 부여하는 강화학습(Isaac Lab, PPO)으로, 처음 보는 절개선도 재학습 없이 수행
 - **이중 안전 구조** : 3초 이내 2회 연속 승인 + 로봇 측 상태 시퀀스 검증으로 오조작·순서 오류 차단
-- **실측 기반 설계** : 해상도 9종 메모리 스윕, base vs LoRA 대조군 생성 등 모든 설계 결정을 실측으로 확정
+- **실측 기반 설계** : 해상도별 메모리 측정, base vs LoRA 대조군 생성, 입력 전처리 비교 등 주요 설계 결정을 실측으로 확정
 
 **1-4. 주요 기능**
 
@@ -44,7 +44,7 @@
     <td align="center"><img src="images/feature_stt.png" width="300"></td>
   </tr>
   <tr>
-    <td align="center">실촬영 데이터로 LoRA 파인튜닝한 Cosmos-Predict2.5-2B가<br>현재 수술 장면 1장으로 약 5.8초의 미래 행동 영상 생성<br>(Image2World, 960×528, 16fps, 93프레임)</td>
+    <td align="center">실촬영 데이터로 LoRA 파인튜닝한 Cosmos-Predict2.5-2B가<br>현재 수술 장면 1장으로 약 5.8초의 미래 행동 영상 생성<br>(Image2World, 768×432, 16fps, 93프레임)</td>
     <td align="center">Whisper STT로 한국어 명령을 인식해<br>절개 / 개복 / 수술 완료 3종 동작으로 분류,<br>동시에 카메라가 현재 수술 환경을 자동 촬영</td>
   </tr>
   <tr>
@@ -65,8 +65,9 @@
 
 | 항목 | 결과 |
 |---|---|
-| 월드 모델 LoRA 학습 | 528×960 · 93프레임 · rank 8, A6000 48GB에서 peak 41.5GB, loss 0.02~0.03 수렴 |
-| 도메인 재현 | 파인튜닝 후 로봇팔·그린스크린·수술 시트·인공 피부 안정적 재현 (608×1104에서는 4 seed 중 2개 도메인 붕괴 → 528×960 확정) |
+| 월드 모델 LoRA 학습 | 실촬영 18클립(절개·개복), 432×768 · 93프레임 · rank 16, RTX 4090 24GB에서 학습 메모리 16.3GB, 1,980 step 7시간 32분 |
+| 도메인 재현 | base 모델은 평가 영상 4개 모두 엉뚱한 물체가 들어와 장면이 무너짐 → LoRA 적용 후 생성 영상 40개 모두 로봇팔·수술포·인공 피부 유지 |
+| 예측 영상 생성 | 영상당 약 3.5분(30 step). 캡션 임베딩을 미리 계산해 텍스트 인코더를 생략, GPU 피크 21.4GB → 9.5GB (결과 픽셀 동일) |
 | 절개 정책 (PPO) | 64개 평가 환경 완주율 80~86%, 실제 도달 가능 방향 구간 94%, xy 정밀도 sub-mm |
 | 좌표 보정 | 30점 Homography Calibration, 평균 재투영 오차 약 0.78 mm |
 | End-to-End | 웹 → 카메라 → STT → 승인 → Jetson → DOFBOT 3종 동작 실기 검증 완료 |
@@ -89,7 +90,7 @@
 | **Embedded / Robot** | ![Jetson](https://img.shields.io/badge/Jetson%20AGX%20Xavier-76B900?style=flat&logo=nvidia&logoColor=white) `Yahboom DOFBOT ×2` `I2C (smbus)` |
 | **Camera** | `Orbbec Gemini E (영상 생성용)` `Logitech C920 (로봇 제어용)` |
 | **Languages** | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black) |
-| **Infra** | ![Ubuntu](https://img.shields.io/badge/Ubuntu%2020.04-E95420?style=flat&logo=ubuntu&logoColor=white) `RTX A6000 48GB (월드 모델)` `RTX 4090 ×2 (강화학습)` `conda` `tmux` |
+| **Infra** | ![Ubuntu](https://img.shields.io/badge/Ubuntu%2020.04-E95420?style=flat&logo=ubuntu&logoColor=white) `RTX A6000 48GB (1차 학습)` `RTX 4090 ×2 (2차 LoRA 학습·추론, 강화학습)` `conda` `tmux` |
 | **Project Management** | ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-000000?style=flat&logo=notion&logoColor=white) |
 
 ---
@@ -110,7 +111,7 @@
 |---|
 | [<img src="images/diagrams/service_flow.png" width="700" alt="서비스 흐름도">](images/diagrams/service_flow.png) |
 
-집도의가 앱에서 음성으로 명령하면 ① Gemini E 카메라가 현재 수술대를 촬영해 서버로 올리고, ② 음성은 STT와 LLM을 거쳐 행동 프롬프트로 바뀝니다. 서버의 Cosmos-Predict2.5-2B가 두 입력으로 시뮬레이션 영상을 생성해 돌려주면, 집도의가 검토 후 **승인한 경우에만** 다음 작업(로봇 실행)으로 진행합니다.
+집도의가 앱에서 음성으로 명령하면 ① Gemini E 카메라가 현재 수술대를 촬영해 서버로 올리고, ② 음성은 STT로 인식해 절개 · 개복 · 수술 완료 중 하나로 분류하고, 동작별 학습 캡션이 행동 프롬프트가 됩니다(키워드로 판단되지 않을 때만 LLM이 인식 오류를 보정). 서버의 LoRA 적용 Cosmos-Predict2.5-2B가 두 입력으로 시뮬레이션 영상을 생성해 돌려주면, 집도의가 검토 후 **승인한 경우에만** 다음 작업(로봇 실행)으로 진행합니다.
 
 | **3-2. S/W 구성도** |
 |---|
@@ -171,10 +172,10 @@ stateDiagram-v2
 
 ## **💡5. 핵심 소스코드**
 
-### 5-1. 음성 명령 인식 및 로봇 동작 분류 (`remote_realtime_listener.py`)
+### 5-1. 음성 명령 인식 및 로봇 동작 분류 ([`src/control_server/remote_realtime_listener.py`](src/control_server/remote_realtime_listener.py))
 수술 명령은 같은 발화에 항상 같은 결과가 나와야 하므로, Whisper의 디코딩을 결정론적으로 고정했습니다.
 `temperature=0.0`은 인식이 불확실할 때 온도를 올려 재시도하는 기본 동작을 막아 재현성을 확보하고, `beam_size=5`는 여러 후보 문장 중 가장 그럴듯한 것을 골라 정확도를 보완합니다.
-전사 결과는 3종 동작으로 분류되며, 이 **단일 분류 결과가 예측 영상 생성과 로봇 명령 양쪽에 동일하게 쓰여** 예측계와 제어계가 같은 명령을 바라보게 됩니다.
+분류는 **키워드로 먼저** 판단해 지연과 변동을 없애고, 키워드가 맞지 않을 때만 LLM이 STT 오인식(예: "개복"→"복구")을 보정합니다. LLM은 절개·개복만 고를 수 있으며, 승인 화면 없이 바로 로봇으로 가는 "수술 완료"는 키워드로만 인정합니다.
 
 ```python
 result = whisper_model.transcribe(
@@ -187,59 +188,72 @@ result = whisper_model.transcribe(
 )
 stt_text = result["text"].strip()
 
-# STT 결과 -> 로봇 동작 분류
-if "절개" in stt_text:
-    robot_action = "incision"
-elif "개복" in stt_text:
-    robot_action = "laparotomy"
-elif ("수술 완료" in stt_text or "완료" in stt_text
-      or "끝났" in stt_text or "끝나" in stt_text):
-    robot_action = "surgery_complete"
-else:
-    write_job_status(audio_path, stage="error", stt_text=stt_text,
-                     error_message="절개/개복/수술완료 명령을 인식하지 못했습니다.")
-    return
+
+def classify_by_keyword(text: str):
+    t = text.replace(" ", "")
+    if "절개" in t:
+        return "incision"
+    if "개복" in t:
+        return "laparotomy"
+    # 수술 완료는 승인 없이 바로 실행되므로 "수술"과 함께 말한 경우만 인정
+    if "수술" in t and ("완료" in t or "끝" in t):
+        return "surgery_complete"
+    return None
+
+
+def classify_command(groq_client, text: str):
+    action = classify_by_keyword(text)
+    if action:
+        return action, "keyword"
+    action = classify_by_llm(groq_client, text)   # incision / laparotomy / None 만 반환
+    if action:
+        return action, "llm"
+    return None, None
 ```
 
-### 5-2. 월드 모델 행동 예측 영상 생성 (`remote_realtime_listener.py`)
-한국어 명령을 LLM이 Cosmos용 영어 행동 프롬프트로 바꾼 뒤, 명령 시점에 촬영한 **정지 이미지 1장**을 조건으로 미래 영상을 생성합니다(Image2World).
-Video2World는 이미 움직이기 시작한 프레임을 요구하므로, "실행 전 예측 → 검토 → 승인" 구조에는 정지 장면에서 출발하는 Image2World가 맞습니다.
-영상이 완전히 저장되고 웹 재생용 faststart 처리가 끝난 **뒤에만** 웹 콘솔을 검토 단계로 전환해, 덜 만들어진 영상이 승인 화면에 뜨는 일을 막습니다.
+### 5-2. LoRA 월드 모델 행동 예측 영상 생성 ([`src/control_server/remote_realtime_listener.py`](src/control_server/remote_realtime_listener.py))
+명령 시점에 촬영한 **정지 이미지 1장**을 조건으로 미래 영상을 생성합니다(Image2World). Video2World는 이미 움직이기 시작한 프레임을 요구하므로, "실행 전 예측 → 검토 → 승인" 구조에는 정지 장면에서 출발하는 Image2World가 맞습니다.
+- **학습과 같은 조건 유지** : LoRA는 학습 캡션 문장에 맞춰 학습되므로 프롬프트는 학습 캡션을 그대로 쓰고, 입력 장면도 학습 클립과 같은 방식(960:528 크롭 → bilinear 축소)으로 만듭니다. 파이프라인에 큰 이미지를 그대로 넘기면 내부에서 nearest 보간으로 줄어 학습 전처리와 달라집니다.
+- **텍스트 인코더 생략** : 캡션이 2개로 고정이라 임베딩을 미리 계산해 넘기고, 약 16GB인 텍스트 인코더를 로드하지 않습니다. 결과는 픽셀 단위로 같고 GPU 피크는 21.4GB에서 9.5GB로 줄었습니다.
+- 영상이 완전히 저장되고 웹 재생용 faststart 처리가 끝난 **뒤에만** 웹 콘솔을 검토 단계로 전환합니다.
 
 ```python
-response = groq_client.chat.completions.create(
-    model="openai/gpt-oss-20b",
-    messages=[
-        {"role": "system", "content": GROQ_SYSTEM_PROMPT},
-        {"role": "user",
-         "content": f"Convert this Korean surgical command to Cosmos prompt: {stt_text}"},
-    ],
+pipe = Cosmos2_5_PredictBasePipeline.from_pretrained(
+    "nvidia/Cosmos-Predict2.5-2B", revision="diffusers/base/post-trained",
+    torch_dtype=torch.bfloat16, safety_checker=_NoSafetyChecker(),
+    text_encoder=None,                              # 미리 계산한 캡션 임베딩 사용
 )
-cosmos_prompt = response.choices[0].message.content.strip()
+pipe.load_lora_weights(COSMOS_LORA_DIR)             # 2차 학습 LoRA (rank 16)
+pipe.fuse_lora(lora_scale=1.0)
+pipe.enable_model_cpu_offload(gpu_id=COSMOS_GPU)    # 24GB GPU
 
-gen_result = pipe(
-    image=image,                 # 명령 시점의 현재 수술 장면 1장 (Image2World)
-    video=None,
-    prompt=cosmos_prompt,
-    negative_prompt=NEGATIVE_PROMPT,
-    num_frames=93,
-    num_inference_steps=30,
-    guidance_scale=7.0,
-    height=704,
-    width=1280,
-    generator=torch.Generator().manual_seed(42),
-)
 
-export_to_video(gen_result.frames[0], str(out_path), fps=8)
-apply_faststart(out_path)        # iPad Safari 스트리밍 대응 — review 전환보다 먼저 수행
+def to_model_frame(img):                            # 학습 클립과 같은 전처리
+    img = center_crop(img.convert("RGB"), aspect=960 / 528)
+    img = img.resize((960, 528), Image.BOX)
+    return img.resize((768, 432), Image.BILINEAR)
+
+
+video = pipe(
+    image=to_model_frame(load_image(frame_path)),   # 명령 시점의 현재 수술 장면 1장
+    prompt=None,
+    prompt_embeds=embeds[robot_action].to(device, torch.bfloat16),
+    negative_prompt_embeds=embeds["negative"].to(device, torch.bfloat16),
+    height=432, width=768, num_frames=93,
+    num_inference_steps=30, guidance_scale=7.0,
+    generator=torch.Generator("cpu").manual_seed(42),
+).frames[0]
+
+export_to_video(video, str(out_path), fps=16)
+apply_faststart(out_path)                            # iPad Safari 스트리밍 대응 — review 전환보다 먼저
 ```
 
-> ⚠️ 위 코드는 1차 시연용 실시간 리스너(베이스 모델 파이프라인) 기준입니다. LoRA 어댑터를 적용한 학습 규격(960×528, 16fps) 추론 코드는 2차 학습 완료 후 서버 버전으로 교체 예정입니다.
+> 위 코드는 설명을 위해 줄인 것입니다(`center_crop`은 실제 코드에서 크롭 계산을 직접 수행). 임베딩 파일이 없거나 캡션이 바뀌면 텍스트 인코더를 로드하는 경로로 자동 전환됩니다.
 
-> LoRA 학습 규격 : 528×960 · 93프레임 · 16fps · rank/alpha 8/8 · lr 1e-4 · BF16 · 50 epoch
+> LoRA 학습 규격 : 432×768 · 93프레임 · 16fps · rank/alpha 16/16 · lr 1e-4 · BF16 · 18클립 × 110 epoch
 > (해상도는 16의 배수여야 하며, 위반 시 OOM이 아닌 `RuntimeError: reshape`가 발생함을 실측으로 확인)
 
-### 5-3. 2단계 승인 (`web_console/templates/job.html`)
+### 5-3. 2단계 승인 ([`src/control_server/web_console/templates/job.html`](src/control_server/web_console/templates/job.html))
 장갑 착용이나 오접촉에 의한 우발적 실행을 막기 위해, 첫 탭은 "장전(armed)"만 하고 **3초 안에 한 번 더** 눌러야 승인 요청이 전송됩니다. 3초가 지나면 자동으로 해제됩니다.
 
 ```javascript
@@ -265,7 +279,7 @@ approveBtn.addEventListener('click', () => {
 });
 ```
 
-### 5-4. 승인 명령 게시 및 Jetson ACK 동기화 (`web_console/app.py`)
+### 5-4. 승인 명령 게시 및 Jetson ACK 동기화 ([`src/control_server/web_console/app.py`](src/control_server/web_console/app.py))
 서버는 로봇을 직접 호출하지 않고, 승인된 명령을 `command.json`에 **게시**만 합니다. Jetson이 이를 주기적으로 조회해 가져가고, 실행 결과를 `job_id`와 함께 ACK로 돌려줍니다.
 - 승인마다 **새 고유 job_id**를 발급해, 같은 동작을 다시 승인해도 명령이 정상 갱신되도록 했습니다.
 - 임시 파일에 쓴 뒤 `os.replace`로 **원자적 치환**하여, Jetson이 반쯤 쓰인 파일을 읽는 상황을 배제했습니다.
@@ -309,7 +323,7 @@ def api_robot_ack():
     # ... 원래 웹 job 상태에도 robot_status 반영 후 원자적 저장
 ```
 
-### 5-5. 촬영 요청 브리지의 경쟁 상태 처리 (`capture_bridge/capture_bridge.py`)
+### 5-5. 촬영 요청 브리지의 경쟁 상태 처리 ([`src/control_server/capture_bridge/capture_bridge.py`](src/control_server/capture_bridge/capture_bridge.py))
 녹음 시작·종료에 카메라 START/STOP이 자동 연동됩니다. 실기 테스트에서 "녹음은 끝났는데 녹화가 계속되는" 버그가 있었는데, 첫 프레임 업로드 완료 처리가 그 사이에 들어온 **STOP 요청을 덮어쓰는** 경쟁 상태(race condition)가 원인이었습니다.
 현재 명령이 실제로 START 처리 중일 때만 상태를 갱신하도록 수정해 해결했습니다.
 
@@ -348,21 +362,30 @@ def save_captured_image(job_id, file_storage):
 
 ```
 26_HC122
-├── images/              # README 이미지
-│   ├── diagrams/        # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
-│   └── team/            # 팀원 사진
+├── images/                     # README 이미지
+│   ├── diagrams/               # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
+│   └── team/                   # 팀원 사진
 ├── src/
-│   ├── gpu_server/      # Flask 웹 승인 콘솔, STT·LLM·Cosmos 리스너, 촬영 브리지
-│   ├── camera_client/   # 카메라 노트북 촬영 클라이언트 (Orbbec Gemini E)
-│   ├── world_model/     # Cosmos-Predict2.5-2B LoRA 학습·추론
-│   ├── jetson_control/  # Jetson 양팔 DOFBOT 제어, 상태 시퀀스
-│   ├── rl_policy/       # Isaac Lab PPO 절개 정책
-│   └── vision/          # 절개선 검출, Homography 좌표 보정
+│   ├── control_server/         # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
+│   │   ├── remote_realtime_listener.py
+│   │   ├── web_console/        # app.py, 촬영 라우트, iPad 화면(templates, static)
+│   │   ├── capture_bridge/
+│   │   ├── tools/make_embeds.py
+│   │   └── tests/smoke_test.py
+│   ├── camera_client/          # 카메라 노트북 촬영 클라이언트 (Orbbec Gemini E)
+│   ├── world_model/            # Cosmos-Predict2.5-2B LoRA 학습·추론
+│   │   ├── tools/              # 촬영 → 클립 제작 → 규격 검사 (노트북)
+│   │   ├── server_kit/         # 환경 설치, 캐시, 학습, 추론 (GPU 서버)
+│   │   ├── scripts/            # 평가 일괄 실행, 요약 시트
+│   │   └── results/            # 학습 설정 기록
+│   ├── jetson_control/         # Jetson 양팔 DOFBOT 제어, 상태 시퀀스
+│   ├── rl_policy/              # Isaac Lab PPO 절개 정책
+│   └── vision/                 # 절개선 검출, Homography 좌표 보정
 ├── requirements.txt
 └── README.md
 ```
 
-> 모델 가중치, 학습 영상, 체크포인트는 용량과 라이선스 문제로 저장소에 포함하지 않습니다.
+> 모델 가중치, 학습 영상, 체크포인트, 녹음 파일은 용량·라이선스·개인정보 문제로 저장소에 포함하지 않습니다. 각 폴더의 README에 실행 방법과 실측 결과를 정리했습니다.
 
 ---
 

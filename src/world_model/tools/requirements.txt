@@ -1,0 +1,5 @@
+# 노트북(Windows) 키트용 — python -m pip install -r requirements.txt
+opencv-python>=4.8
+numpy>=1.24
+matplotlib>=3.7
+imageio-ffmpeg>=0.4.9

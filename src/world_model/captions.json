@@ -1,0 +1,8 @@
+{
+  "status": "draft",
+  "note": "[초안] 팀 확정 전. 확정하면 status를 \"final\"로 바꾸고 check_clips.py --rewrite-metas 실행. 추론 프롬프트는 이 문장과 글자 하나까지 같아야 함(부록 B-1). 위치 정보는 넣지 않음.",
+  "captions": {
+    "incision": "A small robotic arm holding a scalpel lowers it onto the artificial skin pad and draws a straight incision along the marked line.",
+    "laparotomy": "A small robotic arm holding a retractor inserts it into the incision on the artificial skin pad and pulls the skin open."
+  }
+}
