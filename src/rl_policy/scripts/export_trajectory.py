@@ -85,6 +85,13 @@ d = end - start
 u._line_dir[:] = d / d.norm(dim=-1, keepdim=True).clamp(min=1e-6)
 u._target_idx[:] = 0
 u._completed[:] = False
+# The cut is defined by the line's start, direction and length.
+u._line_start[:] = start
+u._line_len[:] = float(args.length)
+u._cut_s[:] = 0.0
+u._was_cutting[:] = False
+# The observation returned by reset() was built for the sampled line.
+obs = u._get_observations()["policy"]
 
 arm_ids = u._arm_dof_idx
 grip_id = u._grip_dof_idx[0]
@@ -117,6 +124,8 @@ np.savez(
     joints_rad=traj,
     blade_tip_local=tips,
     waypoints_local=u._waypoints_local[0].cpu().numpy(),
+    line_start_local=start[0].cpu().numpy(),
+    line_end_local=end[0].cpu().numpy(),
     heading_deg=args.heading,
     control_hz=1.0 / (u.cfg.sim.dt * u.cfg.decimation),
     completed=completed,

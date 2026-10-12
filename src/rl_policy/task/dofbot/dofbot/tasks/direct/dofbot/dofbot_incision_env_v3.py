@@ -5,9 +5,10 @@
 """
 Incision V3: clean redesign (position-target control, smooth + precise)
 
-관측 (26D):
+관측 (29D):
     q(5), dq(5), prev_action(5), ee_pos(3),
-    current_target_rel(3), next_target_rel(3), progress(1), tool_downward_cos(1)
+    current_target_rel(3), next_target_rel(3), progress(1), tool_downward_cos(1),
+    line_dir(2), blade_align(1)
 
 액션 (5D):
     - 관절 위치 타깃 델타. target += action * joint_delta_scale, PD가 추종.
