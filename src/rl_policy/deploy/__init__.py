@@ -1,6 +1,6 @@
 """Real-robot side of the PPO policies. Imports without Isaac Lab / Isaac Sim.
 
-Deployment is OFFLINE ROLLOUT (see INTERFACE.md): the policies are rolled out
+Deployment is OFFLINE ROLLOUT: the policies are rolled out
 in the simulator on a GPU machine and the robot executes the resulting joint
 trajectory. This package holds what the Jetson needs for that:
 
