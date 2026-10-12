@@ -1,4 +1,4 @@
-![Isaac Sim](docs/readme/hero_shot_compressed.png)
+![Isaac Sim](https://raw.githubusercontent.com/isaac-sim/IsaacSim/main/docs/readme/hero_shot_compressed.png)
 
 ---
 # Isaac Sim
@@ -7,7 +7,7 @@
 [![Linux platform](https://img.shields.io/badge/platform-linux--64-orange.svg)](https://releases.ubuntu.com/22.04/)
 [![Linux aarch64 platform](https://img.shields.io/badge/platform-linux--aarch64-orange.svg)](https://docs.nvidia.com/dgx/dgx-os-7-user-guide/introduction.html)
 [![Windows platform](https://img.shields.io/badge/platform-windows--64-orange.svg)](https://www.microsoft.com/en-us/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache--2.0-yellow.svg)](https://github.com/isaac-sim/IsaacSim/blob/main/LICENSE)
 
 NVIDIA Isaac Sim™ is a simulation platform built on NVIDIA Omniverse, designed to develop, test, train, and deploy AI-powered robots in realistic virtual environments. It supports importing robotic systems from common formats such as URDF, MJCF, and CAD. The simulator leverages high-fidelity, GPU-accelerated physics engines to simulate accurate dynamics and support multi-sensor RTX rendering at scale. It comes equipped with end-to-end workflows including synthetic data generation, reinforcement learning, ROS integration, and digital twin simulation. Isaac Sim provides the infrastructure needed to support robotics development at any stage.
 
@@ -79,7 +79,7 @@ Ensure your system is set up with the following before building Isaac Sim:
   winget install --id=Microsoft.VisualStudio.2022.Community -e --override "--add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
   ```
   
-  [Additional information on Windows development configuration](docs/readme/windows_developer_configuration.md)
+  [Additional information on Windows development configuration](https://github.com/isaac-sim/IsaacSim/blob/main/docs/readme/windows_developer_configuration.md)
 
 
 - **(Linux) build-essentials**: A package that includes `make` and other essential tools for building applications.  For Ubuntu, install with:
@@ -286,7 +286,7 @@ python -m pip install _build/packages/dist/*.whl
 
 ### Container (Docker)
 
-For building a Docker image, running with Docker Compose, and web-based streaming, see [tools/docker/README.md](tools/docker/README.md).
+For building a Docker image, running with Docker Compose, and web-based streaming, see [tools/docker/README.md](https://github.com/isaac-sim/IsaacSim/blob/main/tools/docker/README.md).
 
 
 ## Troubleshooting
@@ -322,7 +322,7 @@ for broader dissemination of your work.
 
 ## License
 
-Licensing terms can be found in the [License File](LICENSE).
+Licensing terms can be found in the [License File](https://github.com/isaac-sim/IsaacSim/blob/main/LICENSE).
 
 ## Citation
 
