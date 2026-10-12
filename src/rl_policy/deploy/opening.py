@@ -87,7 +87,7 @@ def plan_opening(line_start_mm, line_end_mm, reference_ends_mm=None, library=Non
         the SAME detector. Strongly recommended: only the difference between the two is
         used, so a constant offset of the detector's frame cancels. Without it the
         reference is the taught incision motion's forward kinematics (1-2 cm uncertain).
-    Returns the trajectory dict of INTERFACE.md section 7, already validated.
+    Returns the trajectory dict, already validated.
     Raises PlacementOutOfRange or TrajectorySafetyError; nothing is returned in that case.
     """
     lib = library if isinstance(library, OpeningLibrary) else OpeningLibrary(library or DEFAULT_LIBRARY)

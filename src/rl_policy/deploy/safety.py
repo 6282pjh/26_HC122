@@ -20,7 +20,7 @@ class TrajectorySafetyError(ValueError):
 def validate_trajectory(traj, max_step_deg=MAX_STEP_DEG, end_stop_margin_deg=END_STOP_MARGIN_DEG):
     """Return a report dict, or raise TrajectorySafetyError.
 
-    `traj` is the dict described in INTERFACE.md section 7.
+    `traj` is the trajectory dict produced by plan_opening / incision_trajectory_from_csv.
     """
     if traj.get("units") != "servo_deg":
         raise TrajectorySafetyError("units must be 'servo_deg', got %r" % traj.get("units"))

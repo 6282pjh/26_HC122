@@ -2,7 +2,7 @@
 scripts/export_policy_weights.py.
 
 Not used to drive the robot: both policies observe quantities only the
-simulator provides (see INTERFACE.md section 3). It exists so the weights kept
+simulator provides. It exists so the weights kept
 in this repository can be loaded and checked without PyTorch.
 """
 

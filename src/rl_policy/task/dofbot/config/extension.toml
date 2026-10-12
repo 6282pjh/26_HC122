@@ -7,12 +7,12 @@ version = "0.1.0"
 category = "isaaclab"
 readme  = "README.md"
 
-title = "Extension Template"
-author = "Isaac Lab Project Developers"
-maintainer = "Isaac Lab Project Developers"
-description="Extension Template for Isaac Lab"
-repository = "https://github.com/isaac-sim/IsaacLab.git"
-keywords = ["extension", "template", "isaaclab"]
+title = "DOFBOT incision/opening tasks"
+author = "26_HC122 team"
+maintainer = "26_HC122 team"
+description="Isaac Lab tasks for DOFBOT skin incision (single arm) and opening (dual arm), trained with skrl PPO"
+repository = "https://github.com/6282pjh/26_HC122"
+keywords = ["isaaclab", "dofbot", "incision", "opening", "ppo"]
 
 [dependencies]
 "isaaclab" = {}
