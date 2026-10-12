@@ -1,333 +1,166 @@
+# rl_policy — 절개·개복 강화학습 정책 (Isaac Lab + PPO)
+
 ![Isaac Sim](images/isaac_sim_hero.png)
 
----
-# Isaac Sim
+> 기반 플랫폼: [NVIDIA Isaac Sim](https://github.com/isaac-sim/IsaacSim) 5.1.0 · [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 2.3.2 · [skrl](https://github.com/Toni-SM/skrl) 2.1.0
+> Isaac Sim 원문 소개는 [`ISAAC_SIM_README.md`](ISAAC_SIM_README.md)에 보관했습니다. (이미지 출처: isaac-sim/IsaacSim, Apache-2.0)
 
-[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://docs.python.org/3/whatsnew/3.12.html)
-[![Linux platform](https://img.shields.io/badge/platform-linux--64-orange.svg)](https://releases.ubuntu.com/22.04/)
-[![Linux aarch64 platform](https://img.shields.io/badge/platform-linux--aarch64-orange.svg)](https://docs.nvidia.com/dgx/dgx-os-7-user-guide/introduction.html)
-[![Windows platform](https://img.shields.io/badge/platform-windows--64-orange.svg)](https://www.microsoft.com/en-us/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-yellow.svg)](https://github.com/isaac-sim/IsaacSim/blob/main/LICENSE)
+DOFBOT 양팔이 수행하는 **절개**와 **개복**을 GPU 병렬 시뮬레이션에서 PPO로 학습한 정책입니다.
+절개 정책은 오른팔로 매번 달라지는 절개선을 따라 칼날을 긋고, 개복 정책은 양팔로 절개선을 벌립니다.
+학습한 정책은 시뮬레이션에서 실행해 관절 궤적으로 만들고, 안전 검사를 통과한 궤적만 실제 로봇으로 보냅니다.
+비전(`vision`)이 찾은 절개선을 입력으로 받아 제어(`jetson_control`)가 실행할 궤적을 돌려주며, 입출력 규격은 [`INTERFACE.md`](INTERFACE.md)에 정리했습니다.
 
-NVIDIA Isaac Sim™ is a simulation platform built on NVIDIA Omniverse, designed to develop, test, train, and deploy AI-powered robots in realistic virtual environments. It supports importing robotic systems from common formats such as URDF, MJCF, and CAD. The simulator leverages high-fidelity, GPU-accelerated physics engines to simulate accurate dynamics and support multi-sensor RTX rendering at scale. It comes equipped with end-to-end workflows including synthetic data generation, reinforcement learning, ROS integration, and digital twin simulation. Isaac Sim provides the infrastructure needed to support robotics development at any stage.
+## 흐름
 
-## Key Features
+```
+[GPU 서버 · Isaac Lab]
+  과제 정의(task/) ──PPO 학습(4096 환경)──▶ 정책 ──평가──▶ results/
+                                            │
+                                            ▼
+                          시뮬레이션에서 정책 실행 → 관절 궤적 → 안전 검사
+                          · 절개: 절개선마다 궤적 생성
+                          · 개복: 절개선 위치 1,377곳의 궤적을 미리 생성 → weights/opening_library.npz
 
-- [Asset Import & Export](https://docs.isaacsim.omniverse.nvidia.com/latest/importer_exporter/importers_exporters.html): Importing and exporting robots and environments from and to non-USD format.
-- [Robot Tuning](https://docs.isaacsim.omniverse.nvidia.com/latest/robot_setup/index.html): Optimize robot for physics accuracy, computation efficiency, or photorealism
-- [Robot Simulation](https://docs.isaacsim.omniverse.nvidia.com/latest/robot_simulation/index.html): Tools for moving robots, such as controllers, motion generation and kinematics solvers, and policy integration.
-- [Sensors](https://docs.isaacsim.omniverse.nvidia.com/latest/sensors/index.html): RTX and physics-based sensors
+[Jetson · Isaac Lab 없이 numpy만]
+  절개선 (Start/End, mm) ──▶ deploy/ ──▶ 서보 각도 궤적 + 서보 범위·변화량 검사 ──▶ I2C로 양팔 구동
+```
 
-## Key Applications
+로봇에서 정책을 매 주기 직접 돌리지 않는 이유는, 두 정책 모두 칼끝 위치나 경로 진행 거리처럼 시뮬레이션이 계산해 주는 값을 관측으로 쓰기 때문입니다.
+그래서 정책은 시뮬레이션에서 끝까지 실행하고, 로봇은 그 결과 궤적을 따라갑니다.
 
-- [Isaac Lab](https://docs.isaacsim.omniverse.nvidia.com/latest/isaac_lab_tutorials/index.html): GPU-accelerated framework built for reinforcement learning, imitation learning, and motion planning.
-- [ROS Bridge](https://docs.isaacsim.omniverse.nvidia.com/latest/ros2_tutorials/ros2_landing_page.html): Integration with Robot Operating System (ROS).
-- [Synthetic Data Generation](https://docs.isaacsim.omniverse.nvidia.com/latest/synthetic_data_generation/index.html): Collection of SDG tools
+## 정책 구성
 
-## Documentation
+| | 절개 `Dofbot-Incision-Direct-v3` | 개복 `Dofbot-Opening-Direct-v0` |
+|---|---|---|
+| 제어 대상 | 오른팔 (I2C 버스 8) | 양팔 (버스 8 · 버스 1) |
+| 관측 / 행동 | 29 / 5 (관절 1~5 위치 목표 변화량) | 43 / 8 (팔마다 관절 1~4 위치 목표 변화량) |
+| 신경망 | 512·512·256·128 (ELU), 관측 정규화 | 같은 구조 |
+| 제어 주기 | 60 Hz (물리 120 Hz) | 60 Hz |
+| 매 에피소드 무작위화 | 절개선 길이 40~70 mm, 방향 60~105°, 중심 x 135~235 mm · y ±80 mm | 절개선 위치 x ±10 mm, y ±20 mm, 회전 ±8° |
+| 기준 동작 | 없음 (보상만으로 학습) | 사람이 직접 기록한 개복 동작(`motions/opening_dual.json`)을 경로로 사용 |
 
-For the latest Isaac Sim documentation, see [Isaac Sim Documentation](https://docs.isaacsim.omniverse.nvidia.com/latest/index.html).
-Follow these links to get started:
+## 과제 설계
 
-- [Tutorials](https://docs.isaacsim.omniverse.nvidia.com/latest/introduction/quickstart_index.html)
-- [Assets](https://docs.isaacsim.omniverse.nvidia.com/latest/assets/usd_assets_overview.html)
+### 절개 — "찍기"가 아니라 "긋기"를 학습
 
+칼끝이 아래 네 조건을 **동시에** 만족하는 동안만 절개로 인정합니다 (`dofbot_incision_env_v3.py` 535~567행).
 
-## Prerequisites and Environment Setup
+| 조건 | 기준 |
+|---|---|
+| 칼끝과 절개선 사이 수직 거리 | 4 mm 미만 |
+| 깊이 오차 (목표: 피부면 아래 5 mm) | 3 mm 미만 |
+| 공구가 수직으로 선 정도 | cos > 0.6 |
+| 칼날 방향과 절개선 방향 | \|cos\| > 0.90 |
 
-Ensure your system is set up with the following before building Isaac Sim:
+절개 진행 거리는 **직전 스텝에도 절개 중이었고, 이미 그은 지점에서 이어질 때만** 늘어납니다.
+처음 학습할 때는 절개선 위의 점을 하나씩 찍고 떼는 동작이 나왔는데, 이 규칙으로 칼을 떼면 진행이 멈추고 감점되도록 바꿔 접촉을 유지한 채 긋는 동작을 학습하게 했습니다.
 
-- **Operating System**: Windows 11 or Linux (Ubuntu 22.04/24.04)
+| 주요 보상 | 가중치 |
+|---|---|
+| 절개 진행 (늘어난 거리 / 선 길이) | 10000 |
+| 완주 보너스 | 1000 |
+| 긋던 중 칼을 뗌 | −200 |
+| 칼끝 접근 · 깊이 · 수직 자세 · 칼날 정렬 (형상 보상) | 0.5 ~ 1.5 |
+| 손끝·링크가 피부면이나 패치 바닥 아래로 침범 | −150 / m |
 
-  > **(Linux) Ubuntu 24.04**
-  > Building with Ubuntu 24.04 requires GCC/G++ 11 to be installed, GCC/G++ 12+ is not supported.
+전체 항목과 식은 `dofbot_incision_env_cfg_v3.py` 403~585행에 있습니다.
 
-- **GPU**: For additional information on GPU features and requirements, see [NVIDIA GPU Requirements](https://docs.omniverse.nvidia.com/dev-guide/latest/common/technical-requirements.html)
+### 개복 — 양팔 동기 경로 추종
 
-  #### Local Workstation
+사람이 기록한 개복 동작(양팔이 절개선 위로 모여 공구를 넣고 각자 바깥쪽으로 벌림)을 관절 공간에서 보간해 끝점 경로를 만들고, 매 에피소드 절개선 위치를 옮기면서 경로도 함께 옮깁니다.
+두 팔의 진행률 차이가 10% 이상 벌어지면 앞선 팔의 진행이 멈추도록 해 양팔이 같은 속도로 움직이게 했습니다.
 
-  | Min | Recommended | Best |
-  |-----|-------------|------|
-  | RTX 4080 | RTX 5080 | RTX PRO 6000 Blackwell Workstation |
-  |  | RTX 5880 Ada | RTX PRO 5000 Blackwell Workstation |
+| 주요 보상 | 가중치 |
+|---|---|
+| 경로 진행 (접근 1 : 삽입 2 : 벌림 4 가중) | 10000 |
+| 벌림 상태 60 스텝 유지 시 완료 보너스 | 1000 |
+| 삽입·벌림 구간에서 경로 이탈 | −200 |
+| 양팔 진행률 차이 | −1 |
 
-  #### Datacenter
+전체 항목은 `dofbot_opening_env_cfg.py` 117~146행에 있습니다.
 
-  | Min | Recommended | Best |
-  |-----|-------------|------|
-  | A40 | L40S | RTX PRO 6000 Blackwell Server |
-  |  | L20 | |
+## 결과 (시뮬레이션, 2026-10-12 재실행)
 
-- **Driver**: See [NVIDIA Driver Requirements](https://docs.omniverse.nvidia.com/dev-guide/latest/common/technical-requirements.html)
+| 항목 | 결과 | 근거 |
+|---|---|---|
+| 절개 완주율 | **81% (52 / 64 환경)**, 그은 비율 평균 87% · 중앙값 100% | [`results/eval_incision_20261012.md`](results/eval_incision_20261012.md) |
+| 절개 방향별 완주 | 60~75° 18/20 · 75~90° 16/20 · 90~105° 15/24 | 같음 |
+| 개복 완료율 | **100% (256 / 256 환경)**, 벌림 폭 135 mm (기록 동작 133 mm) | [`results/eval_opening_20261012.md`](results/eval_opening_20261012.md) |
+| 개복 궤적 묶음 | 1,377곳 중 1,376곳 안전 검사 통과, 양팔 최소 간격 68 mm | [`results/opening_library_20261009.md`](results/opening_library_20261009.md) |
 
-- **Internet Access**: Required for downloading the Omniverse Kit SDK, extensions, and tools. Allow outbound HTTPS
-  access to `ovextensionsprod.blob.core.windows.net` so the build can resolve public Kit and Isaac Sim extensions.
+평가 절개선은 학습과 같은 범위에서 다른 시드로 무작위 생성했습니다. 시뮬레이션에는 피부 변형 모델이 없고 칼끝은 계산된 점입니다.
 
+## 실제 로봇 적용 (Sim-to-Real)
 
+| 단계 | 내용 |
+|---|---|
+| 관절 보정 | 서보 각도 ↔ 시뮬레이션 관절각 변환 (관절 1~4 방향 반전, 손목 롤 +135° 오프셋을 실기에서 측정) — `deploy/servo.py` |
+| 서보 끝단 여유 | 관절이 가동 범위 끝에 붙지 않도록 4° 안쪽으로 제한 — `scripts/apply_servo_margin.py` |
+| 시뮬레이션 안전 검사 | 칼끝·링크가 수술대 아래로 내려가는지, 관절이 끝단에 붙는지, 양팔 간격 60 mm 이상인지 — `scripts/check_trajectory_safety.py` |
+| Jetson 안전 검사 | 서보 범위, 명령 간 변화 25° 이하. 실패하면 궤적을 내보내지 않음 — `deploy/safety.py` |
 
-### Required Software Dependencies
+| 동작 | 실기 상태 |
+|---|---|
+| 개복 (양팔) | 개복 정책 궤적을 실제 양팔로 구동, 정상 동작 확인 (2026-10-08, 기록 위치의 절개선) |
+| 절개 (오른팔) | 절개 정책 궤적을 칼날 없이 구동해 손목 롤 오프셋을 찾아 반영 (2026-08-31). 칼날 장착 구동은 높이 확인 후 진행 예정 |
+| deploy dry-run | 개복 2건 통과 · 범위 밖 1건 거부, 절개 1건 통과 (모터 미구동) — [`results/dryrun_20261012.md`](results/dryrun_20261012.md) |
 
-- [**Git**](https://git-scm.com/downloads): For version control and repository management
+## 폴더
 
-- [**Git LFS**](https://git-lfs.com/): For managing large files within the repository
+| 경로 | 내용 |
+|---|---|
+| [`INTERFACE.md`](INTERFACE.md) | 비전·제어와의 입출력 규격 (좌표계, 관측·행동, 보정, deploy API, 궤적 형식) |
+| `task/dofbot/` | Isaac Lab 과제 패키지: 절개·개복 환경, skrl PPO 설정(`agents/*.yaml`) |
+| `scripts/` | 학습(`train.py`), 재생(`play.py`), 평가(`eval_*.py`), 궤적 추출·안전 검사, 영상 렌더링 |
+| `deploy/` | Jetson용 궤적 생성·검사·dry-run (numpy만 필요) |
+| `deploy/agx/` | Jetson에서 Arm_Lib로 궤적을 재생하는 스크립트, 오른팔 관절 보정값 |
+| `motions/` | 사람이 직접 기록한 절개·개복 동작 JSON, 개복 도달 범위 맵 |
+| `weights/` | 정책 신경망과 관측 정규화 값만 추린 `.npz`, 개복 궤적 묶음 |
+| `results/` | 평가·dry-run 기록 |
 
-- **(Windows - C++ Only) Microsoft Visual Studio 2022**:
+## 실행
 
-- Install Visual Studio 2022, Windows SDK, and MSVC using Winget by running the following command in PowerShell:
-
-  ```powershell
-  winget install --id=Microsoft.VisualStudio.2022.Community -e --override "--add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
-  ```
-  
-  [Additional information on Windows development configuration](https://github.com/isaac-sim/IsaacSim/blob/main/docs/readme/windows_developer_configuration.md)
-
-
-- **(Linux) build-essentials**: A package that includes `make` and other essential tools for building applications.  For Ubuntu, install with:
-
-  ```bash
-  sudo apt-get install build-essential
-  ```
-
-  > **(Linux) ⚠️**
-  > Please use GCC/G++ 11, higher versions are not supported yet. To install GCC/G++ 11, run the following commands:
-  > ```bash
-  > sudo apt-get install gcc-11 g++-11
-  > sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 200
-  > sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 200
-  > ```
-
-  > **(Linux aarch64) ⚠️**
-  > On aarch64 hosts (e.g. DGX Spark), X11 development headers are required to build Python packages that lack pre-built wheels:
-  > ```bash
-  > sudo apt-get install -y libx11-dev xorg-dev
-  > ```
-
-  > **Compiler Version Check ⚠️**
-  > We have added a version checker to our build process. If you do not have the default versions you are still able to execute a build, add  `--skip-compiler-version-check` to `build.[sh/bat]` when building.  Proceed at your own risk, unsupported build environments may encounter build and runtime issues.
-
-### Recommended Software
-
-- [**(Linux) Docker**](https://docs.docker.com/engine/install/ubuntu/): For containerized development and deployment. **Ensure non-root users have Docker permissions.**
-
-- [**(Linux) NVIDIA Container Toolkit**](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html): For GPU-accelerated containerized development and deployment. **Installation and Configuring Docker steps are required.**
-
-- [**VSCode**](https://code.visualstudio.com/download) (or your preferred IDE): For code editing and development
-
-## Quick Start
-
-This section guides you through building Isaac Sim from source code.
-
-### 1. Clone the Repository
-
+**학습·평가 (GPU 서버, Isaac Lab 설치 환경, 이 폴더에서)**
 
 ```bash
-git clone -b main https://github.com/isaac-sim/IsaacSim.git isaacsim
-cd isaacsim
-git lfs install
-git lfs pull
+export PYTHONPATH=$PWD/task/dofbot:$PYTHONPATH
+export DOFBOT_ROBOT_USD=<DOFBOT 로봇 USD 경로>     # 로봇 모델은 저장소에 포함하지 않음
+
+python scripts/train.py --task=Dofbot-Incision-Direct-v3 --num_envs=4096 --headless
+python scripts/eval_incision.py <checkpoint.pt> --envs 64
+
+# 절개선 하나에 대한 궤적 생성 → 끝단 여유 → 안전 검사 ("재생 가능" 판정만 로봇으로)
+python scripts/export_trajectory.py <checkpoint.pt> --heading 90 --length 0.05 --cx 0.17 --cy 0.0 --out traj.npz
+python scripts/apply_servo_margin.py traj.npz --margin-deg 4 --out traj_margin.npz
+python scripts/check_trajectory_safety.py traj_margin.npz
 ```
 
-### 2. Build
-
-Run the following command to initiate the configuration wizard:
-
-**Linux:**
-
-Confirm that GCC/G++ 11 is being used before building using the following commands:
+**Jetson (Isaac Lab 불필요, `src/`에서)**
 
 ```bash
-gcc --version
-g++ --version
+pip install -r rl_policy/deploy/requirements.txt            # numpy
+python -m rl_policy.deploy.dry_run opening --line 154 44 168 -29 --out out.json --csv-out out.csv
+python rl_policy/deploy/agx/replay_opening_on_agx.py out.csv --dry-run    # 각도 확인
+python rl_policy/deploy/agx/replay_opening_on_agx.py out.csv              # 실제 구동
 ```
 
-```bash
-./build.sh
+```python
+from rl_policy.deploy import plan_opening, PlacementOutOfRange, TrajectorySafetyError
+
+traj = plan_opening((159, 56), (176, -16), reference_ends_mm=((154, 44), (168, -29)))
+# 범위를 벗어나거나 검사에 실패하면 예외가 발생하고 궤적은 반환되지 않습니다.
 ```
 
-**Windows:**
+학습에 쓴 원본 체크포인트(`.pt`)와 로봇 USD 모델은 용량 문제로 저장소에 넣지 않았습니다.
 
-> **⚠️ Windows Path Length Limitation**
-> Windows has a path length limitation of 260 characters. If you encounter errors related missing files or other build errors, try moving the repository to a shorter path.
+## 시연과의 차이
 
-```powershell
-build.bat
-```
+발표 시연의 로봇 동작은 `motions/`의 기록 동작(사람이 로봇을 움직여 저장한 궤적)을 재생했습니다.
+이 폴더의 코드는 정책이 만든 궤적을 생성·검사·재생하는 경로이며, 위 "실기 상태"는 이 경로로 구동한 결과입니다.
 
-### 3. Run
+## 한계
 
-> **⚠️ Startup Time**
-> The first time loading Isaac Sim may take up to several minutes as Extensions and Shader are loaded and cached. The subsequent startup time should be in the ranges of 10-30 seconds depending on hardware configuration.
-
-
-
-Navigate to the corresponding binary directory for your platform and run the executable.
-
-**Linux (x86_64):**
-```bash
-cd _build/linux-x86_64/release
-./isaac-sim.sh
-```
-
-**Linux (aarch64):**
-```bash
-cd _build/linux-aarch64/release
-./isaac-sim.sh
-```
-
-**Windows:**
-```powershell
-cd _build/windows-x86_64/release
-isaac-sim.bat
-```
-
-> NOTE: If this is your first time building Isaac Sim, you will be prompted to accept the Omniverse Licensing Terms.
-
-
-
-## Advanced Build Options
-
-
-Isaac Sim uses a custom build system with the following key options:
-
-
-### Core Build Options
-- `-c, --clean`: Clean the repository and exit
-- `-x, --rebuild`: Clean the repository before building (full rebuild)
-- `-h, --help`: Show all available build options
-
-
-### Configuration Options
-- `--config [debug|release]`: Specify build configuration (default: both)
-- `-d, --debug`: Build only debug configuration
-- `-r, --release`: Build only release configuration
-
-
-### Advanced Options
-- `-j NUM_CORES, --jobs NUM_CORES`: Limit the number of parallel compilation jobs
-- `-v, --verbose`: Enable verbose build output
-- `-q, --quiet`: Suppress build output
-
-
-### Build Steps Control
-- `--fetch-only`: Only fetch dependencies and stop
-- `-g, --generate`: Generate projects, stage files and stop
-- `-s, --stage`: Stage files, skip generation step
-- `-b, --build-only`: Only perform building step, skip others
-- `--post-build-only`: Only perform post-build step
-
-## Usage
-Congratulations on installing Isaac Sim! To get started with using Isaac Sim, follow these [Quick Tutorials](https://docs.isaacsim.omniverse.nvidia.com/latest/introduction/quickstart_index.html). For more information, visit our full [documentation](https://docs.isaacsim.omniverse.nvidia.com/latest/index.html).
-
-## Additional Build Tools
-
-Beyond building and running from source (see [Quick Start](#quick-start)), Isaac Sim can also be packaged as a standalone binary archive, built as Python wheels, or deployed as a Docker container.
-
-### Binary Package
-
-Build a standalone redistributable binary package from source. A successful [build](#quick-start) is required before packaging.
-
-**Linux:**
-
-```bash
-./repo.sh package --config release -m isaac-sim-standalone
-```
-
-> **Note:** The same command works on both x86_64 and aarch64 hosts. The build system detects the platform automatically.
-
-**Windows:**
-
-```powershell
-.\repo.bat package --config release -m isaac-sim-standalone
-```
-
-The packaged archive is written to the `_build/packages/` directory.
-
-### PIP Packages
-
-Build Isaac Sim Python (PIP) wheels locally from a successful [build](#quick-start). Pre-built wheels for released versions are also available on [pypi.nvidia.com](https://pypi.nvidia.com); see [Install Isaac Sim using PIP](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_python.html#installation-using-pip) for the install-only path.
-
-A successful [build](#quick-start) is required before packaging.
-
-**Linux:**
-
-```bash
-./repo.sh python_package --create
-./repo.sh comment_archive_deps
-./repo.sh python_package --wheel
-```
-
-**Windows:**
-
-```powershell
-.\repo.bat python_package --create
-.\repo.bat comment_archive_deps
-.\repo.bat python_package --wheel
-```
-
-The three steps, in order:
-
-1. `python_package --create` stages per-package source trees under `_build/packages/python/` from the wheel definitions in [python_packages.toml](python_packages.toml).
-2. `comment_archive_deps` comments out references to Kit pip-archive extensions (`omni.kit.pip_archive`, `omni.isaac.core_archive`, `omni.isaac.ml_archive`, `omni.pip.compute`, `omni.pip.cloud`, `isaacsim.pip.newton`, `isaacsim.pip.nv`, `isaacsim.pip.onnx`) in the generated `extension.toml` and `*.kit` files so wheel metadata is self-contained.
-3. `python_package --wheel` builds the `.whl` files into `_build/packages/dist/`.
-
-Install locally-built wheels into a Python 3.12 virtual environment:
-
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install _build/packages/dist/*.whl
-```
-
-> **(Linux aarch64) ⚠️**
-> On aarch64 hosts, X11 development headers are required to build transitive Python dependencies that lack pre-built aarch64 wheels (same note as under [Prerequisites and Environment Setup](#prerequisites-and-environment-setup)):
-> ```bash
-> sudo apt-get install -y libx11-dev xorg-dev
-> ```
-
-### Container (Docker)
-
-For building a Docker image, running with Docker Compose, and web-based streaming, see [tools/docker/README.md](https://github.com/isaac-sim/IsaacSim/blob/main/tools/docker/README.md).
-
-
-## Troubleshooting
-
-- Please see the [FAQ](https://docs.isaacsim.omniverse.nvidia.com/latest/overview/faq_index.html), [Troubleshooting](https://docs.isaacsim.omniverse.nvidia.com/latest/overview/troubleshooting.html), and [Known Issues](https://docs.isaacsim.omniverse.nvidia.com/latest/overview/known_issues.html) for common questions, fixes, and workarounds.
-
-- On Linux, if you encounter network connectivity issues when building (such as corporate firewalls), run the following commands:
-
-  ```bash
-  export http_proxy="http://{Your IP address}:7890"
-  export https_proxy="http://{Your IP address}:7890"
-  ```
-
-  - Use these variables only when you use proxy software or are behind a corporate firewall. Replace port 7890 with
-    the port used by your proxy.
-
-- If dependency resolution reports `found 0 packages` for a public registry such as `kit/prod/sdk` and exits with
-  code 55, verify that the build process can reach `ovextensionsprod.blob.core.windows.net` through your firewall or
-  proxy. Reaching the host with a browser or a separate command-line client does not confirm that the build inherited
-  the same proxy settings.
-
-
-## Support
-
-* Please use GitHub [Discussions](https://github.com/isaac-sim/IsaacSim/discussions) for discussing ideas, asking questions, and requests for new features.
-* Github [Issues](https://github.com/isaac-sim/IsaacSim/issues) should only be used to track executable pieces of work with a definite scope and a clear deliverable. These can be fixing bugs, documentation issues, new features, or general updates.
-
-## Connect with the NVIDIA Omniverse Community
-
-Have a project or resource you'd like to share more widely? We'd love to hear from you! Reach out to the
-NVIDIA Omniverse Community team at OmniverseCommunity@nvidia.com to discuss potential opportunities
-for broader dissemination of your work.
-
-## License
-
-Licensing terms can be found in the [License File](https://github.com/isaac-sim/IsaacSim/blob/main/LICENSE).
-
-## Citation
-
-To cite Isaac Sim, click on "Cite this repository" in the right sidebar of the [Isaac Sim GitHub repository](https://github.com/isaac-sim/IsaacSim) landing page and select one of the listed citation entries.
-
-## Contributing
-
-We do not support direct community contributions at the moment.
+- 절개는 절개선마다 GPU 서버에서 궤적을 생성해야 합니다. Jetson에서 바로 생성되는 것은 개복뿐입니다.
+- 기록 동작과 절개 과제 사이에 칼끝 높이 차이(약 30 mm)가 있어, 칼날 장착 구동 전에 실측 보정이 필요합니다.
+- 개복은 기록한 절개선 위치 기준 x ±10 mm, y ±20 mm, 회전 ±8° 안에서만 동작하고, 벗어나면 거부합니다.
+- 왼팔 관절 방향은 오른팔 측정값을 그대로 사용했고, 실기 구동 결과는 별도 로그 파일로 남기지 않았습니다.
