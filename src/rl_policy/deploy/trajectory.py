@@ -1,4 +1,4 @@
-"""Trajectory files: the JSON format of INTERFACE.md section 7, and the CSV
+"""Trajectory files: the JSON trajectory format, and the CSV
 that agx/replay_opening_on_agx.py reads."""
 
 import json
@@ -6,9 +6,15 @@ import json
 I2C_BUS = {"right": 8, "left": 1}
 
 
+def _plain(value):
+    # numpy scalars (float32 from the library file) are not JSON types; under
+    # numpy 2.x json refuses them outright.
+    return value.item() if hasattr(value, "item") else str(value)
+
+
 def save_trajectory(traj, path):
     with open(path, "w") as fh:
-        json.dump(traj, fh, indent=1)
+        json.dump(traj, fh, indent=1, default=_plain)
 
 
 def load_trajectory(path):
