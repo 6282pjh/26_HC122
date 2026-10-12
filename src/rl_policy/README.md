@@ -1,4 +1,4 @@
-![Isaac Sim](https://raw.githubusercontent.com/isaac-sim/IsaacSim/main/docs/readme/hero_shot_compressed.png)
+![Isaac Sim](images/isaac_sim_hero.png)
 
 ---
 # Isaac Sim
