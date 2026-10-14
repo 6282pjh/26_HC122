@@ -1,0 +1,90 @@
+{
+  "task": "incision",
+  "success": true,
+  "samples": 224,
+  "duration_sec": 12.471140859001025,
+  "goal": {
+    "start_pixel": [
+      297,
+      308
+    ],
+    "end_pixel": [
+      297,
+      215
+    ],
+    "start_world_mm": [
+      85.25695037841797,
+      146.97218322753906,
+      0.0
+    ],
+    "end_world_mm": [
+      84.94203186035156,
+      69.5929183959961,
+      0.0
+    ],
+    "start_right_mm": [
+      60.972183227539055,
+      168.74304962158203,
+      -27.0
+    ],
+    "end_right_mm": [
+      -16.407081604003917,
+      169.05796813964844,
+      -27.0
+    ],
+    "world_surface_z_mm": 0.0,
+    "right_base_origin_mm": [
+      254.0,
+      86.0,
+      27.0
+    ],
+    "right_base_yaw_deg": 90.0,
+    "coordinate_rule": "P_robot = Rz(-yaw) @ (P_world - base_origin)",
+    "homography_path": "pixel_to_world_homography_30.json",
+    "robot_base_path": "robot_base_calibration_face_to_face.json",
+    "hsv": {
+      "h1_max": 6,
+      "h2_min": 150,
+      "s_min": 80,
+      "v_min": 160
+    }
+  },
+  "camera": {
+    "type": "Logitech C920 only",
+    "index": 0,
+    "capture": [
+      640,
+      480,
+      30.0
+    ],
+    "saved_frames": [
+      640,
+      480,
+      20.0
+    ],
+    "goal_snapshot": "goal_c920.jpg"
+  },
+  "robot": {
+    "side": "RIGHT",
+    "i2c_bus": 8,
+    "home": [
+      86.0,
+      150.0,
+      45.0,
+      26.0,
+      89.0,
+      78.0
+    ],
+    "tool_open_s6": 78.0,
+    "tool_grip_s6": 175.0
+  },
+  "control_hz": 20.0,
+  "state_source": "previous_command_at_20hz",
+  "action_source": "new_dofbot_command_at_20hz",
+  "qpos_read_enabled": false,
+  "qpos_strategy": "disabled_for_i2c_stability",
+  "qpos_columns": "NaN by design; do not treat as measured joint state",
+  "dropped_samples": 0,
+  "worker_error": null,
+  "created_at": "2026-10-05T23:35:09.274157"
+}
