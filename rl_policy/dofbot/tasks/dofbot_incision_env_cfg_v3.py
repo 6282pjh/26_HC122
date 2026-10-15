@@ -142,7 +142,7 @@ class DofbotIncisionEnvCfgV3(DirectRLEnvCfg):
 
     # Robot USD path (same asset as V2)
     _ASSETS_DIR = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "assets")
+        os.path.join(os.path.dirname(__file__), "..", "..", "assets")
     )
     _LOCAL_USD = os.path.join(_ASSETS_DIR, "dofbot.usd")
     _DEFAULT_USD = os.path.join(_ASSETS_DIR, "dofbot.usda")

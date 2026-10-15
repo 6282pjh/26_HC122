@@ -34,7 +34,7 @@ from isaaclab.utils import configclass
 from .dofbot_incision_env_cfg_v3 import DofbotIncisionEnvCfgV3, _incise_actuators
 
 _REPO_DIR = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "..", "..")
+    os.path.join(os.path.dirname(__file__), "..", "..")
 )
 
 

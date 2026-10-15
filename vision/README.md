@@ -8,12 +8,12 @@
 
 | 경로 | 역할 |
 |---|---|
-| `surgical_pipeline/vision/detect_incision_c920.py` | 고정 ROI 안에서 HSV 마스크·contour 조건으로 절개선 검출, 화면 아래 START·위 END Pixel 출력 |
-| `surgical_pipeline/vision/detect_incision_c920_record.py` | 검출 화면과 표시를 MP4로 녹화 |
-| `surgical_pipeline/vision/webcam_record.py` | V4L2·MJPG로 C920 원본 화면을 AVI로 녹화 |
-| `surgical_pipeline/vision/calibration/collect_pixel_world_calibration_30.py` | 30점 순서대로 클릭, H 추정, 대응점·오차·스냅샷 저장 |
-| `surgical_pipeline/vision/calibration/pixel_to_world_30.py` | Pixel → World CLI 및 카메라 클릭 확인 |
-| `surgical_pipeline/vision/calibration/pixel_to_dual_robot_base_30.py` | Pixel/World/선분 → 좌·우 베이스 좌표 출력, 기준 World 점 확인 |
+| `surgical_pipeline/camera/detect_incision_c920.py` | 고정 ROI 안에서 HSV 마스크·contour 조건으로 절개선 검출, 화면 아래 START·위 END Pixel 출력 |
+| `surgical_pipeline/camera/detect_incision_c920_record.py` | 검출 화면과 표시를 MP4로 녹화 |
+| `surgical_pipeline/camera/webcam_record.py` | V4L2·MJPG로 C920 원본 화면을 AVI로 녹화 |
+| `surgical_pipeline/camera/calibration/collect_pixel_world_calibration_30.py` | 30점 순서대로 클릭, H 추정, 대응점·오차·스냅샷 저장 |
+| `surgical_pipeline/camera/calibration/pixel_to_world_30.py` | Pixel → World CLI 및 카메라 클릭 확인 |
+| `surgical_pipeline/camera/calibration/pixel_to_dual_robot_base_30.py` | Pixel/World/선분 → 좌·우 베이스 좌표 출력, 기준 World 점 확인 |
 | `surgical_pipeline/common/coordinates/coordinate_transform.py` | H·베이스 JSON 로드, 점·벡터 좌표 변환 함수 |
 | `surgical_pipeline/common/calibration/calibrate_base_yaw.py` | **실제 모터를 움직여** 베이스 yaw 방향을 사람이 판정하는 측정 스크립트 |
 | `surgical_pipeline/config/calibration/face_to_face_20260821/` | 2026-08-21 측정 JSON 3개와 30점 스냅샷 |
@@ -36,11 +36,11 @@ cd vision/surgical_pipeline
 ### 장비 없이 실행하는 명령
 
 ```bash
-python3 -B vision/calibration/pixel_to_world_30.py pixel 398 132
-python3 -B vision/calibration/pixel_to_dual_robot_base_30.py verify
-python3 -B vision/calibration/pixel_to_dual_robot_base_30.py pixel 398 132
-python3 -B vision/calibration/pixel_to_dual_robot_base_30.py world 70 95 0
-python3 -B vision/calibration/pixel_to_dual_robot_base_30.py line 315 313 315 223
+python3 -B camera/calibration/pixel_to_world_30.py pixel 398 132
+python3 -B camera/calibration/pixel_to_dual_robot_base_30.py verify
+python3 -B camera/calibration/pixel_to_dual_robot_base_30.py pixel 398 132
+python3 -B camera/calibration/pixel_to_dual_robot_base_30.py world 70 95 0
+python3 -B camera/calibration/pixel_to_dual_robot_base_30.py line 315 313 315 223
 python3 -B ../results/verify_calibration.py
 ```
 
@@ -49,11 +49,11 @@ python3 -B ../results/verify_calibration.py
 ### 카메라가 필요한 명령
 
 ```bash
-python3 vision/detect_incision_c920.py
-python3 vision/detect_incision_c920_record.py
-python3 vision/webcam_record.py
-python3 vision/calibration/pixel_to_world_30.py test
-python3 vision/calibration/pixel_to_dual_robot_base_30.py test
+python3 camera/detect_incision_c920.py
+python3 camera/detect_incision_c920_record.py
+python3 camera/webcam_record.py
+python3 camera/calibration/pixel_to_world_30.py test
+python3 camera/calibration/pixel_to_dual_robot_base_30.py test
 ```
 
 검출기는 `s`로 마지막 START/END를 출력하고 `q`로 종료합니다. 녹화 스크립트는 실행하면 바로 녹화를 시작하고 `q`로 저장·종료합니다. `webcam_record.py`는 최상위 코드에서 바로 카메라를 열기 때문에 다른 코드에서 import하지 않습니다.
@@ -132,7 +132,7 @@ World `(70,95,0)`은 좌 Base `(-9,194,-27)`, 우 Base `(9,184,-27)`입니다.
 ```bash
 # Linux 예시: 새 측정 파일을 분리해 저장
 export HC122_CALIB_DIR="$HOME/hc122-calibration-new"
-python3 vision/calibration/collect_pixel_world_calibration_30.py
+python3 camera/calibration/collect_pixel_world_calibration_30.py
 ```
 
 카메라 위치·각도·해상도·크롭·렌즈 설정, 작업 평면의 높이·기울기·격자 위치가 바뀌면 H를 다시 측정합니다. 베이스 위치나 방향이 바뀌면 원점·yaw도 다시 측정합니다. 조명이 바뀌면 HSV·ROI와 검출 상태를 다시 확인합니다. 정확도를 따로 확인하려면 H 적합에 쓴 30점과 별개인 확인점을 측정해야 합니다.
