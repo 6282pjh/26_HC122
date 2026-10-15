@@ -86,7 +86,7 @@ ffmpeg가 PATH에 있어야 합니다(녹음 wav 변환, mp4 faststart).
 | 생성 결과 | 기준 | 기준과 **픽셀 동일** |
 
 - Whisper medium: GPU 4.9GB, 문장당 0.4~0.5초 / CPU에서는 문장당 약 10초.
-- 임베딩 경로 + Whisper를 같은 GPU에 올리면 계산상 약 14.4GB (동시 실행은 미검증).
+- 임베딩 경로 + Whisper를 같은 GPU에 올리면 계산상 약 14.4GB.
 - 모델은 한 번만 로드해 상주시킵니다. 공유 서버에서 RAM이 부족해 swap이 일어나면 첫 실행이 크게 느려질 수 있습니다.
 - Cosmos를 올릴 GPU는 `CUDA_VISIBLE_DEVICES`로 고르고 `COSMOS_GPU=0`으로 두는 방식이 검증된 방식입니다.
 
@@ -99,9 +99,3 @@ CUDA_VISIBLE_DEVICES=<빈 GPU> COSMOS_LORA_DIR=<LoRA 폴더> COSMOS_SEED=0 \
 ```
 
 연구실 RTX 4090에서 3건(절개 · 개복 · 수술 완료) 모두 통과했습니다 (2026-10-11). 녹음 파일은 저장소에 포함하지 않습니다.
-
-## 알려진 한계
-
-- `/robot/command`, `/robot/ack`에는 인증이 없습니다. 외부에 공개할 때는 터널 앞단에 접근 제한을 두어야 합니다.
-- `robot_bridge/command.json`은 명령 한 개만 담습니다. Jetson이 가져가기 전에 다음 승인이 들어오면 이전 명령을 덮어씁니다.
-- 긴급 정지 버튼은 서버에 상태만 기록하고, `command.json`으로 정지 명령을 내보내지는 않습니다.
