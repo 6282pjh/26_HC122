@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# setup_env.sh — 새 서버에 1차 학습 환경을 재현한다. (HDD판)
+# setup_env.sh — GPU 서버에 학습 환경을 구성한다.
 # 기준: 2026-08-18 1차 학습 서버 pip freeze
 # 사용: bash server_kit/setup_env.sh        (conda가 PATH에 있어야 함)
 #
 # 대상: A6000/4090 등 Ampere·Ada GPU. Blackwell(RTX PRO 6000)은 torch 2.6+cu124 미지원 → 쓰면 안 됨.
 #
-# [HDD판에서 바뀐 점]
+# [구성 방식]
 #  1) env를 -p $CONDA_ENV_PREFIX (HDD)에 생성, conda-forge 채널만 사용
 #     (최근 conda는 defaults 채널에 ToS 동의를 요구해서 비대화식 create가 멈출 수 있음)
 #  2) 모든 고정 버전을 constraints 파일 하나로 묶어 처음부터 적용 → 어떤 pip install도 핀을 못 바꿈

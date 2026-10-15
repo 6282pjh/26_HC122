@@ -27,7 +27,7 @@ try:
     who = HfApi().whoami()
     print(f"[HF] 로그인: {who.get('name')}")
 except Exception as e:
-    print(f"[중단] HF 로그인 안 됨: {e}\n  → huggingface-cli login (토큰은 팀 공용 X, 개인 토큰)")
+    print(f"[중단] HF 로그인 안 됨: {e}\n  → huggingface-cli login")
     sys.exit(1)
 
 print(f"[다운로드] {model_id} @ {revision} → HF_HOME={hf_home}")
