@@ -11,7 +11,7 @@
 negative_prompt가 None이면 encode_prompt 381행이 DEFAULT_NEGATIVE_PROMPT(63~70행)를 쓴다.
 
 사용: CUDA_VISIBLE_DEVICES=<빈 GPU> python tools/make_embeds.py [--cache_dir <학습 캐시>]
-      기본값: --captions captions.json, --out assets/prompt_embeds  (control_server 폴더 기준)
+      기본값: --captions captions.json, --out assets/prompt_embeds  (web_server 폴더 기준)
 필요 GPU: 텍스트 인코더를 올리므로 nvidia-smi 기준 약 17.5GB (연구실 4090 실측 피크 17,234MiB)
 출처: 연구실 RTX 4090 서버에서 2026-10-11 검증한 스크립트.
       학습 캐시 임베딩과 비트 단위 동일, 이 임베딩으로 만든 영상이 텍스트 인코더 경로와 픽셀 동일함을 확인.
@@ -31,7 +31,7 @@ class NoSafetyChecker:
 
 
 ap = argparse.ArgumentParser()
-ROOT = Path(__file__).resolve().parent.parent   # control_server
+ROOT = Path(__file__).resolve().parent.parent   # web_server
 ap.add_argument("--captions", default=str(ROOT / "captions.json"))
 ap.add_argument("--out", default=str(ROOT / "assets" / "prompt_embeds"))
 ap.add_argument("--cache_dir", default=None, help="학습 캐시(index.json, prompt_embeds_*.pt) — 값 비교용")

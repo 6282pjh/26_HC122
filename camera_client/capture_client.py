@@ -1,7 +1,7 @@
 """
 capture_client.py — Orbbec Gemini E 촬영 클라이언트 (카메라를 연결한 노트북에서 실행)
 
-control_server의 웹 콘솔에 0.5초마다 촬영 요청을 물어보고(/capture/pending),
+web_server의 웹 콘솔에 0.5초마다 촬영 요청을 물어보고(/capture/pending),
 START가 오면 ACK 후 첫 프레임을 업로드(/capture/upload)하고 녹화를 시작, STOP이 오면 녹화를 끝낸다.
 업로드한 첫 프레임은 월드 모델의 입력 장면으로 쓰인다.
 

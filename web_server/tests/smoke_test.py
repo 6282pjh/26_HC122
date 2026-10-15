@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-smoke_test.py — control_server 워커를 실제 모델(Whisper + Cosmos + LoRA)로 한 번씩 돌려 보는 테스트.
+smoke_test.py — web_server 워커를 실제 모델(Whisper + Cosmos + LoRA)로 한 번씩 돌려 보는 테스트.
 
 웹 콘솔(app.py)을 같은 프로세스 안에서 띄우고, 녹음 wav 3개를 워커의 process_one()에 직접 넣는다.
 녹음 파일은 저장소에 포함하지 않는다. tests/wavs/ 에 아래 이름으로 직접 녹음해 넣는다(16kHz 이상 mono wav).
@@ -26,8 +26,8 @@ import threading
 import time
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent          # control_server/tests
-CODE = HERE.parent                               # control_server
+HERE = Path(__file__).resolve().parent          # web_server/tests
+CODE = HERE.parent                               # web_server
 
 CASES = [
     # (job_id, wav 파일, 첫 프레임 png 이름 또는 None, 기대 동작)

@@ -1,6 +1,6 @@
 # world_model — Cosmos-Predict2.5-2B LoRA 학습 · 추론
 
-수술 세트장에서 직접 촬영한 로봇 동작 영상으로 NVIDIA Cosmos-Predict2.5-2B(Image2World)에 LoRA를 학습해, **현재 장면 1장 + 동작 캡션 → 93프레임(약 5.8초) 미래 영상**을 생성합니다. 학습한 LoRA는 [`../control_server`](../control_server)의 워커가 불러 씁니다.
+수술 세트장에서 직접 촬영한 로봇 동작 영상으로 NVIDIA Cosmos-Predict2.5-2B(Image2World)에 LoRA를 학습해, **현재 장면 1장 + 동작 캡션 → 93프레임(약 5.8초) 미래 영상**을 생성합니다. 학습한 LoRA는 [`../web_server`](../web_server)의 워커가 불러 씁니다.
 
 ## 흐름
 
@@ -82,7 +82,7 @@ python server_kit/infer_lora.py --data_dir $PROJECT_ROOT/data/dataset/test --hei
 - 개복은 rank 32가 원본 타이밍에 더 가깝고, 절개는 rank 16이 원위치 복귀까지 나오는 경우가 있었습니다(10개 중 2개). 서비스·시연에는 rank 16을 사용했습니다.
 - 위 관찰은 영상별 정지 프레임 6~7장을 기준으로 한 것입니다.
 
-**추론 (432×768, 30 step, guidance 7.0)**: 영상당 194~226초. nvidia-smi 기준 GPU 피크 약 21.4GB이며, 미리 계산한 캡션 임베딩을 쓰면 9.5GB로 줄고 결과는 픽셀 단위로 같습니다(`control_server/tools/make_embeds.py`).
+**추론 (432×768, 30 step, guidance 7.0)**: 영상당 194~226초. nvidia-smi 기준 GPU 피크 약 21.4GB이며, 미리 계산한 캡션 임베딩을 쓰면 9.5GB로 줄고 결과는 픽셀 단위로 같습니다(`web_server/tools/make_embeds.py`).
 
 ## 알려진 한계
 
