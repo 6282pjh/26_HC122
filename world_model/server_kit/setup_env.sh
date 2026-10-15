@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# setup_env.sh — 새 서버에 1차(DIS04) 학습 환경을 재현한다. (HDD판)
-# 기준: 2026-08-18 DIS04 pip freeze(haneium_backup_20260818/cosmos_pip.txt)
+# setup_env.sh — 새 서버에 1차 학습 환경을 재현한다. (HDD판)
+# 기준: 2026-08-18 1차 학습 서버 pip freeze
 # 사용: bash server_kit/setup_env.sh        (conda가 PATH에 있어야 함)
 #
 # 대상: A6000/4090 등 Ampere·Ada GPU. Blackwell(RTX PRO 6000)은 torch 2.6+cu124 미지원 → 쓰면 안 됨.
@@ -89,7 +89,7 @@ EOP
 
 echo "[6/6] activate.d에 환경변수 등록"
 mkdir -p "$CONDA_PREFIX/etc/conda/activate.d" "$CONDA_PREFIX/etc/conda/deactivate.d"
-# [2026-10-05 연구실 서버 반영] ~/.bashrc가 HF_HOME 등을 이미 export하고 있으면
+# [2026-10-05 반영] ~/.bashrc가 HF_HOME 등을 이미 export하고 있으면
 #   deactivate 때 unset만 해서는 원래 값이 사라진다 → activate 때 원래 값을 저장하고 deactivate 때 복원.
 ACT="$CONDA_PREFIX/etc/conda/activate.d/hanium_env.sh"
 cat > "$ACT" <<'EOF'

@@ -74,7 +74,7 @@ python remote_realtime_listener.py
 
 ffmpeg가 PATH에 있어야 합니다(녹음 wav 변환, mp4 faststart).
 
-### 실측 (연구실 RTX 4090 24GB, r16 LoRA, 432×768·93프레임·30 step, 2026-10-11)
+### 실측 (RTX 4090 24GB, r16 LoRA, 432×768·93프레임·30 step, 2026-10-11)
 
 | 항목 | 텍스트 인코더 경로 | 임베딩 경로 |
 |---|---|---|
@@ -96,4 +96,4 @@ CUDA_VISIBLE_DEVICES=<빈 GPU> COSMOS_LORA_DIR=<LoRA 폴더> COSMOS_SEED=0 \
   python tests/smoke_test.py --test_frames <dataset/test/first_frames> --out <결과 폴더>
 ```
 
-연구실 RTX 4090에서 3건(절개 · 개복 · 수술 완료) 모두 통과했습니다 (2026-10-11). 녹음 파일은 저장소에 포함하지 않습니다.
+RTX 4090에서 3건(절개 · 개복 · 수술 완료) 모두 통과했습니다 (2026-10-11). 녹음 파일은 저장소에 포함하지 않습니다.
