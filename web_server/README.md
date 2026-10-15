@@ -11,12 +11,12 @@ iPad 웹 콘솔 ──녹음──▶ inputs/incoming/{job}.wav ──▶ remote
    ▲                                                   │ ① Whisper STT
    │                                                   │ ② 명령 분류 (키워드 → 필요 시 LLM 보정)
    │                                                   │ ③ Cosmos + LoRA 예측 영상 (Gemini E 촬영 이미지 입력)
-   │◀──────── outputs/{job}.json / _result.mp4 ◀───────┘
+   │◀───── outputs/{job}_result.mp4 · {job}.json ◀─────┘
    │
  집도의 승인 ──▶ robot_bridge/command.json ──▶ Jetson (/robot/command 폴링 → /robot/ack)
 ```
 
-웹 콘솔(`web_console/app.py`)과 워커(`remote_realtime_listener.py`)는 파일로만 주고받습니다. 웹 콘솔은 녹음을 저장하고 화면을 보여주는 일만 하고, 무거운 모델(Whisper, Cosmos)은 워커가 한 번 로드해 상주시킵니다.
+웹 콘솔(`web_console/app.py`)과 워커(`remote_realtime_listener.py`)는 파일로만 주고받습니다. 워커는 요청마다 예측 영상(`{job}_result.mp4`)과 함께 진행 상태 파일(`{job}.json`: 처리 단계, STT 결과, 분류된 동작, 생성 시간)을 실시간으로 기록하고, 웹 콘솔은 이 파일을 읽어 화면을 갱신합니다. 웹 콘솔은 녹음을 저장하고 화면을 보여주는 일만 하고, 무거운 모델(Whisper, Cosmos)은 워커가 한 번 로드해 상주시킵니다.
 
 ## 핵심 설계
 
