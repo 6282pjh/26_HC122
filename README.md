@@ -61,8 +61,6 @@
   </tr>
 </table>
 
-> 각 기능은 파트별 폴더에 독립적으로 구현되어 있습니다 — ① `world_model`·`web_server`, ② `web_server`·`camera_client`, ③ `web_server`, ④ `rl_policy`(시뮬레이션 학습·평가)·`vision`(절개선 검출·좌표 보정)
-
 **1-5. 주요 실측 결과** 
 
 | 항목 | 결과 |
@@ -73,7 +71,6 @@
 | 절개 정책 (PPO) | 64개 평가 환경 완주율 80~86%, 실제 도달 가능 방향 구간 94%, xy 정밀도 sub-mm |
 | 좌표 보정 | 30점 Homography Calibration, 평균 재투영 오차 약 0.78 mm |
 | End-to-End | 웹 → 카메라 → STT → 승인 → Jetson → DOFBOT 3종 동작 실기 검증 완료 |
-
 
 **1-6. 기대 효과 및 활용 분야**
 - **기대 효과** : AI 행동을 실행 전에 시각적으로 확인하게 하여 Physical AI의 예측 가능성·설명 가능성·신뢰성 향상, 반복적인 보조 업무 분담으로 의료진 부담 완화
@@ -109,8 +106,6 @@
 
 ## **💡3. 시스템 구성도**
 
-> 이 장의 구성도 · 상태 시퀀스 · 엔티티 관계도는 **전체 시스템 설계** 기준입니다. 저장소의 코드는 파트별로 독립 구현되어 있으며(각 폴더 README 참고), 서버와 Jetson은 JSON 상태 파일(`command.json`)과 polling으로 연동했습니다. Jetson 제어 코드는 저장소에 포함하지 않았습니다.
-
 | **3-1. 서비스 흐름도** |
 |---|
 | [<img src="images/diagrams/service_flow.png" width="700" alt="서비스 흐름도">](images/diagrams/service_flow.png) |
@@ -123,14 +118,10 @@
 
 시스템은 **태블릿 · 카메라 노트북 · GPU 서버 · Jetson 제어부**의 4개 노드로 나뉘어 동작합니다. 카메라 노트북과 Jetson은 외부에서 직접 접속할 수 있는 주소가 없기 때문에, 서버가 상태 파일에 명령을 **게시**하고 각 장치가 1~1.5초 주기로 이를 **조회(polling)** 해 가는 단방향 구조로 설계했습니다. 서버는 명령을 게시할 수만 있고, 실제 실행 여부는 로봇이 최종 판단합니다. 태블릿 접속은 Tailscale Funnel을 통한 HTTPS로 제공됩니다.
 
-월드 모델이 만든 예측 영상은 판단 근거로만 쓰고, 실제 로봇 제어는 별도 계통에서 수행합니다.
-
 | 계통 | 입력 | 출력 | 역할 |
 |---|---|---|---|
 | **예측계** | 촬영 이미지 + 행동 프롬프트 | 미래 행동 예측 영상 | 집도의 판단 지원 |
 | **제어계** | 실제 카메라 관측 + 승인된 명령 | 로봇 관절 제어 명령 | 실제 DOFBOT 실행 |
-
-> 두 계통을 잇는 것은 로봇 제어 데이터가 아니라 **집도의의 승인 신호** 하나뿐입니다. 생성 영상은 픽셀 결과물이라 실제 좌표나 깊이 정보가 아니므로, 영상 속 로봇팔 위치를 제어값으로 쓰지 않습니다.
 
 | **3-3. H/W 구성도** |
 |---|
@@ -154,21 +145,15 @@ stateDiagram-v2
     COMPLETE --> [*]
 ```
 
-> 현재 상태에서 허용되지 않는 명령은 로봇이 자체적으로 거부합니다. 서버가 잘못된 순서의 명령을 보내더라도 실제 동작으로 이어지지 않는 이중 안전 구조입니다.
-
 | **3-4. 엔티티 관계도** |
 |---|
 | [<img src="images/diagrams/erd.png" width="700" alt="엔티티 관계도">](images/diagrams/erd.png) |
 
 하나의 음성 명령(`USER_COMMAND`)에서 STT 결과 · 장면 이미지 · 검토 작업(`REVIEW_JOB`)이 파생되고, 검토 작업에 시뮬레이션 영상(`SIM_VIDEO`)과 승인(`APPROVAL`)이 연결됩니다. 승인된 작업만 로봇 명령(`ROBOT_COMMAND`)이 되며, 로봇의 응답(`ROBOT_ACK`)이 시스템 상태(`SYSTEM_STATE`)를 갱신합니다. 장면 이미지는 캘리브레이션 정보(`CALIBRATION_PROFILE`)를 거쳐 절개 목표 좌표(`TARGET_COORDINATE`)로 변환되어 로봇 명령에 첨부됩니다.
 
-> 엔티티 관계도는 설계 기준입니다. 실제 서버 구현은 데이터베이스 없이 JSON 상태 파일(job 상태, `capture_command.json`, `command.json`)로 동작하며, 좌표 변환은 `vision` 폴더에서 별도로 실행합니다.
-
-
 ---
 
 ## **💡4. 작품 소개영상**
-> <sub>이미지를 클릭하면 유튜브 시연 영상을 보실 수 있습니다.</sub>
 
 [![월드 모델 기반 수술 어시스턴트 로봇 시연](https://img.youtube.com/vi/k7HaMJAGI6U/maxresdefault.jpg)](https://www.youtube.com/watch?v=k7HaMJAGI6U)
 
@@ -177,7 +162,6 @@ stateDiagram-v2
 ---
 
 ## **💡5. 핵심 소스코드**
-> <sub>각 파트의 핵심 부분을 실제 코드 그대로 캡처했습니다. 제목 옆 링크를 누르면 해당 줄로 이동합니다.</sub>
 
 ### 5-1. 음성 명령 분류 — web_server ([`remote_realtime_listener.py` L198–217](web_server/remote_realtime_listener.py#L198-L217))
 <img src="images/code/code_01_classify.png" alt="음성 명령 분류 코드">
@@ -259,8 +243,6 @@ stateDiagram-v2
 │   └── results/                # 보정 수치 재계산·검증 기록
 └── README.md
 ```
-
-> 월드 모델 가중치, 학습 영상, 체크포인트, 녹음 파일은 용량·라이선스·개인정보 문제로 저장소에 포함하지 않습니다(강화학습 정책만 경량 npz로 포함). 각 폴더는 독립적으로 설치·실행하며, 폴더별 README에 설치·실행 방법과 실측 결과를 정리했습니다. `world_model` README는 기반 모델인 NVIDIA Cosmos의 소개 문서입니다.
 
 ---
 
