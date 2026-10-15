@@ -177,190 +177,49 @@ stateDiagram-v2
 ---
 
 ## **💡5. 핵심 소스코드**
+> <sub>각 파트의 핵심 부분을 실제 코드 그대로 캡처했습니다. 제목 옆 링크를 누르면 해당 줄로 이동합니다.</sub>
 
-### 5-1. 음성 명령 인식 및 로봇 동작 분류 ([`control_server/remote_realtime_listener.py`](control_server/remote_realtime_listener.py))
-수술 명령은 같은 발화에 항상 같은 결과가 나와야 하므로, Whisper의 디코딩을 결정론적으로 고정했습니다.
-`temperature=0.0`은 인식이 불확실할 때 온도를 올려 재시도하는 기본 동작을 막아 재현성을 확보하고, `beam_size=5`는 여러 후보 문장 중 가장 그럴듯한 것을 골라 정확도를 보완합니다.
-분류는 **키워드로 먼저** 판단해 지연과 변동을 없애고, 키워드가 맞지 않을 때만 LLM이 STT 오인식(예: "개복"→"복구")을 보정합니다. LLM은 절개·개복만 고를 수 있으며, 승인 화면 없이 바로 로봇으로 가는 "수술 완료"는 키워드로만 인정합니다.
+### 5-1. 음성 명령 분류 — control_server ([`remote_realtime_listener.py` L198–217](control_server/remote_realtime_listener.py#L198-L217))
+<img src="images/code/code_01_classify.png" alt="음성 명령 분류 코드">
 
-```python
-result = whisper_model.transcribe(
-    str(audio_path),
-    language="ko",
-    beam_size=5,
-    best_of=5,
-    temperature=0.0,
-    condition_on_previous_text=True,
-)
-stt_text = result["text"].strip()
+- 키워드(`절개` / `개복` / `수술`+`완료·끝`)로 **먼저** 판단하고, 맞는 키워드가 없을 때만 LLM이 STT 오인식(예: "개복"→"복구")을 보정합니다.
+- LLM 답은 정규식으로 한 단어만 뽑고, `GENERATIVE_ACTIONS`(절개·개복)에 들 때만 받아들입니다. 승인 화면 없이 바로 실행되는 "수술 완료"는 LLM이 만들 수 없고 키워드로만 인정됩니다.
+- LLM 호출이 실패하면 `None`을 돌려 키워드 결과만 사용합니다.
 
+### 5-2. LoRA 월드 모델 예측 영상 생성 — control_server ([`remote_realtime_listener.py` L504–517](control_server/remote_realtime_listener.py#L504-L517))
+<img src="images/code/code_02_generate.png" alt="예측 영상 생성 코드">
 
-def classify_by_keyword(text: str):
-    t = text.replace(" ", "")
-    if "절개" in t:
-        return "incision"
-    if "개복" in t:
-        return "laparotomy"
-    # 수술 완료는 승인 없이 바로 실행되므로 "수술"과 함께 말한 경우만 인정
-    if "수술" in t and ("완료" in t or "끝" in t):
-        return "surgery_complete"
-    return None
+- `pipe`는 Cosmos-Predict2.5-2B에 2차 학습 LoRA(rank 16)를 불러와 합친 파이프라인입니다([L366–368](control_server/remote_realtime_listener.py#L366-L368)).
+- `image`는 명령 시점에 촬영한 현재 장면 1장이며, 학습 클립과 같은 전처리(960:528 크롭 → bilinear 768×432)를 거칩니다.
+- `text_args`에는 미리 계산한 캡션 임베딩을 넣어 텍스트 인코더(약 16GB)를 로드하지 않습니다. GPU 피크가 21.4GB에서 9.5GB로 줄었고 결과는 픽셀 단위로 같습니다.
+- 432×768 · 93프레임 · 30 step · guidance 7.0 · 고정 seed로 생성하고, mp4 faststart 처리가 끝난 **뒤에만** 웹 콘솔을 검토 단계로 넘깁니다.
 
+### 5-3. 승인 명령 ACK 동기화 — control_server ([`web_console/app.py` L339–355](control_server/web_console/app.py#L339-L355))
+<img src="images/code/code_03_ack.png" alt="Jetson ACK 처리 코드">
 
-def classify_command(groq_client, text: str):
-    action = classify_by_keyword(text)
-    if action:
-        return action, "keyword"
-    action = classify_by_llm(groq_client, text)   # incision / laparotomy / None 만 반환
-    if action:
-        return action, "llm"
-    return None, None
-```
+- 서버는 승인된 명령을 `command.json`에 게시만 하고 Jetson이 주기적으로 가져갑니다. 승인할 때마다 고유 `job_id`를 새로 만들고, 임시 파일에 쓴 뒤 `os.replace`로 원자적으로 교체합니다([L66–83](control_server/web_console/app.py#L66-L83)).
+- Jetson이 보낸 ACK의 `job_id`가 현재 명령과 다르면 `409`로 거부해, 늦게 도착한 이전 응답이 최신 상태를 덮어쓰지 못하게 합니다.
 
-### 5-2. LoRA 월드 모델 행동 예측 영상 생성 ([`control_server/remote_realtime_listener.py`](control_server/remote_realtime_listener.py))
-명령 시점에 촬영한 **정지 이미지 1장**을 조건으로 미래 영상을 생성합니다(Image2World). Video2World는 이미 움직이기 시작한 프레임을 요구하므로, "실행 전 예측 → 검토 → 승인" 구조에는 정지 장면에서 출발하는 Image2World가 맞습니다.
-- **학습과 같은 조건 유지** : LoRA는 학습 캡션 문장에 맞춰 학습되므로 프롬프트는 학습 캡션을 그대로 쓰고, 입력 장면도 학습 클립과 같은 방식(960:528 크롭 → bilinear 축소)으로 만듭니다. 파이프라인에 큰 이미지를 그대로 넘기면 내부에서 nearest 보간으로 줄어 학습 전처리와 달라집니다.
-- **텍스트 인코더 생략** : 캡션이 2개로 고정이라 임베딩을 미리 계산해 넘기고, 약 16GB인 텍스트 인코더를 로드하지 않습니다. 결과는 픽셀 단위로 같고 GPU 피크는 21.4GB에서 9.5GB로 줄었습니다.
-- 영상이 완전히 저장되고 웹 재생용 faststart 처리가 끝난 **뒤에만** 웹 콘솔을 검토 단계로 전환합니다.
+### 5-4. 24GB GPU에서의 LoRA 학습 — world_model ([`server_kit/train_lora_4090.py` L541–562](world_model/server_kit/train_lora_4090.py#L541-L562))
+<img src="images/code/code_04_lora_train.png" alt="LoRA 학습 설정 코드">
 
-```python
-pipe = Cosmos2_5_PredictBasePipeline.from_pretrained(
-    "nvidia/Cosmos-Predict2.5-2B", revision="diffusers/base/post-trained",
-    torch_dtype=torch.bfloat16, safety_checker=_NoSafetyChecker(),
-    text_encoder=None,                              # 미리 계산한 캡션 임베딩 사용
-)
-pipe.load_lora_weights(COSMOS_LORA_DIR)             # 2차 학습 LoRA (rank 16)
-pipe.fuse_lora(lora_scale=1.0)
-pipe.enable_model_cpu_offload(gpu_id=COSMOS_GPU)    # 24GB GPU
+- 원본 학습 스크립트는 매 step마다 텍스트 인코더(Qwen2.5-VL-7B, 약 16GB) · VAE · DiT를 모두 GPU에 올려, 1차(A6000 48GB) 학습 때 피크가 41.5GB였습니다.
+- 캡션이 동작별 2문장으로 고정이고 VAE 인코딩이 결정적이므로, `cache_latents.py`로 한 번만 계산해 저장합니다. 학습 중에는 `text_encoder=None`, VAE는 CPU에 두고 GPU에는 DiT만 올립니다([L568](world_model/server_kit/train_lora_4090.py#L568)).
+- 432×768 · 93프레임 · rank 16에서 학습 메모리 16.26GB, 1,980 step에 7시간 32분(RTX 4090). 작은 테스트 모델로 원본 스크립트와 나란히 돌려 step loss와 최종 LoRA 가중치가 같음을 확인했습니다.
 
+### 5-5. 강화학습 절개 진행 판정 — rl_policy ([`dofbot_incision_env_v3.py` L536–560](rl_policy/task/dofbot/dofbot/tasks/direct/dofbot/dofbot_incision_env_v3.py#L536-L560))
+<img src="images/code/code_05_cut.png" alt="절개 진행 판정 코드">
 
-def to_model_frame(img):                            # 학습 클립과 같은 전처리
-    img = center_crop(img.convert("RGB"), aspect=960 / 528)
-    img = img.resize((960, 528), Image.BOX)
-    return img.resize((768, 432), Image.BILINEAR)
+- 칼끝이 선 가까이(`lateral`), 정해진 깊이(`z_err`), 공구 수직(`vertical_ok`), 칼날 방향 정렬(`blade_ok`)을 **동시에** 만족할 때만 "자르는 중"으로 봅니다.
+- 이미 그은 끝에서 이어질 때(공간 연속), 직전 step에도 자르고 있었을 때(시간 연속)만 절개 길이 `_cut_s`가 늘어납니다. 점을 찍듯 콕콕 찌르거나 선 끝만 건드려 보상을 받는 행동을 막기 위한 조건입니다.
+- 보상은 늘어난 절개 길이에 비례해 주고([L571](rl_policy/task/dofbot/dofbot/tasks/direct/dofbot/dofbot_incision_env_v3.py#L571)), 중간에 칼을 들면 감점합니다. 시뮬레이션 평가: 무작위 절개선 64개 중 52개 완주(81%, [평가 기록](rl_policy/results/eval_incision_20261012.md)).
 
+### 5-6. Pixel → World → 로봇 베이스 좌표 변환 — vision ([`coordinate_transform.py` L38–47](vision/surgical_pipeline/common/coordinates/coordinate_transform.py#L38-L47))
+<img src="images/code/code_06_coord.png" alt="좌표 변환 코드">
 
-video = pipe(
-    image=to_model_frame(load_image(frame_path)),   # 명령 시점의 현재 수술 장면 1장
-    prompt=None,
-    prompt_embeds=embeds[robot_action].to(device, torch.bfloat16),
-    negative_prompt_embeds=embeds["negative"].to(device, torch.bfloat16),
-    height=432, width=768, num_frames=93,
-    num_inference_steps=30, guidance_scale=7.0,
-    generator=torch.Generator("cpu").manual_seed(42),
-).frames[0]
-
-export_to_video(video, str(out_path), fps=16)
-apply_faststart(out_path)                            # iPad Safari 스트리밍 대응 — review 전환보다 먼저
-```
-
-> 위 코드는 설명을 위해 줄인 것입니다(`center_crop`은 실제 코드에서 크롭 계산을 직접 수행). 임베딩 파일이 없거나 캡션이 바뀌면 텍스트 인코더를 로드하는 경로로 자동 전환됩니다.
-
-> LoRA 학습 규격 : 432×768 · 93프레임 · 16fps · rank/alpha 16/16 · lr 1e-4 · BF16 · 18클립 × 110 epoch
-> (해상도는 16의 배수여야 하며, 위반 시 OOM이 아닌 `RuntimeError: reshape`가 발생함을 실측으로 확인)
-
-### 5-3. 2단계 승인 ([`control_server/web_console/templates/job.html`](control_server/web_console/templates/job.html))
-장갑 착용이나 오접촉에 의한 우발적 실행을 막기 위해, 첫 탭은 "장전(armed)"만 하고 **3초 안에 한 번 더** 눌러야 승인 요청이 전송됩니다. 3초가 지나면 자동으로 해제됩니다.
-
-```javascript
-let armed = false;
-let armTimer = null;
-
-approveBtn.addEventListener('click', () => {
-  if (!armed) {
-    armed = true;                       // 1회차: 장전만
-    approveBtn.classList.add('arm');
-    approveTxt.innerHTML = '한 번 더 눌러 실행<small>3초 안에 누르지 않으면 취소됩니다</small>';
-    armTimer = setTimeout(() => {       // 3초 경과 시 자동 해제
-      armed = false;
-      approveBtn.classList.remove('arm');
-      approveTxt.innerHTML = '이 동작 승인<small>탭하면 한 번 더 확인합니다</small>';
-    }, 3000);
-  } else {
-    clearTimeout(armTimer);             // 2회차: 실제 승인
-    armed = false;
-    approveBtn.classList.remove('arm');
-    decide('approve');
-  }
-});
-```
-
-### 5-4. 승인 명령 게시 및 Jetson ACK 동기화 ([`control_server/web_console/app.py`](control_server/web_console/app.py))
-서버는 로봇을 직접 호출하지 않고, 승인된 명령을 `command.json`에 **게시**만 합니다. Jetson이 이를 주기적으로 조회해 가져가고, 실행 결과를 `job_id`와 함께 ACK로 돌려줍니다.
-- 승인마다 **새 고유 job_id**를 발급해, 같은 동작을 다시 승인해도 명령이 정상 갱신되도록 했습니다.
-- 임시 파일에 쓴 뒤 `os.replace`로 **원자적 치환**하여, Jetson이 반쯤 쓰인 파일을 읽는 상황을 배제했습니다.
-- ACK의 `job_id`가 현재 명령과 다르면 `409`로 거부해, 오래된 응답이 최신 상태를 덮어쓰지 못하게 했습니다.
-
-```python
-def write_robot_command(job_id: str, action: str):
-    """승인할 때마다 항상 새로운 고유 job_id로 명령을 생성한다."""
-    unique_job_id = f"{job_id}_{uuid.uuid4().hex[:8]}"
-    data = {
-        "job_id": unique_job_id,
-        "source_job_id": job_id,
-        "action": action,
-        "status": "approved",
-        "consumed": False,
-        "created_at": datetime.now().isoformat(),
-    }
-    tmp = ROBOT_COMMAND_PATH.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, ROBOT_COMMAND_PATH)          # 원자적 치환
-    return data
-
-
-@app.route("/robot/command", methods=["GET"])
-def api_robot_command():
-    return jsonify(read_robot_command())         # Jetson이 주기적으로 조회
-
-
-@app.route("/robot/ack", methods=["POST"])
-def api_robot_ack():
-    body = request.get_json(silent=True) or {}
-    job_id = body.get("job_id")
-    data = read_robot_command()
-
-    if not job_id or data.get("job_id") != job_id:
-        return jsonify({"ok": False, "error": "job_id mismatch"}), 409
-
-    data["consumed"] = True
-    data["status"] = body.get("status", "done")
-    # ... 원래 웹 job 상태에도 robot_status 반영 후 원자적 저장
-```
-
-### 5-5. 촬영 요청 브리지의 경쟁 상태 처리 ([`control_server/capture_bridge/capture_bridge.py`](control_server/capture_bridge/capture_bridge.py))
-녹음 시작·종료에 카메라 START/STOP이 자동 연동됩니다. 실기 테스트에서 "녹음은 끝났는데 녹화가 계속되는" 버그가 있었는데, 첫 프레임 업로드 완료 처리가 그 사이에 들어온 **STOP 요청을 덮어쓰는** 경쟁 상태(race condition)가 원인이었습니다.
-현재 명령이 실제로 START 처리 중일 때만 상태를 갱신하도록 수정해 해결했습니다.
-
-```python
-def save_captured_image(job_id, file_storage):
-    save_path = os.path.join(CAPTURES_DIR, f"{job_id}.png")
-    file_storage.save(save_path)
-
-    cmd = read_capture_command()
-
-    # 이미지 업로드가 끝나는 동안 같은 job_id의 STOP 요청이 들어올 수 있다.
-    # 이때 STOP(pending)을 done으로 덮어쓰면 카메라 클라이언트가 STOP을 놓친다.
-    # 따라서 현재 명령이 실제 START 처리 중일 때만 START를 done으로 변경한다.
-    if (
-        cmd.get("job_id") == job_id
-        and cmd.get("action") == "start"
-        and cmd.get("status") == "running"
-    ):
-        cmd["status"] = "done"
-        cmd["saved_path"] = save_path
-        cmd["completed_at"] = _now()
-        write_capture_command(cmd)
-
-    elif (
-        cmd.get("job_id") == job_id
-        and cmd.get("action") == "stop"
-        and cmd.get("status") == "pending"
-    ):
-        # STOP 요청이 이미 들어온 상태면 절대 덮어쓰지 않는다.
-        ...
-```
+- `pixel_to_world`: 30점 캘리브레이션으로 구한 Homography `H`로 C920 영상의 Pixel 좌표를 작업 평면 World 좌표(mm)로 바꿉니다.
+- `world_to_robot`: World 좌표에서 각 팔 베이스 원점을 빼고 yaw만큼 역회전(`Rz(-yaw)`)해, 마주 보고 놓인 좌·우 DOFBOT 각자의 좌표로 바꿉니다.
+- 30점 적합 잔차 평균 0.78mm (H를 구할 때 쓴 같은 30점 기준, [검증 기록](vision/results/verification_20261015.md)).
 
 ---
 
@@ -370,6 +229,7 @@ def save_captured_image(job_id, file_storage):
 26_HC122
 ├── images/                     # README 이미지
 │   ├── diagrams/               # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
+│   ├── code/                   # 핵심 소스코드 캡처
 │   └── team/                   # 팀원 사진
 ├── control_server/             # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
 │   ├── remote_realtime_listener.py
