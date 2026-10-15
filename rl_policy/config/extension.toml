@@ -20,16 +20,8 @@ keywords = ["isaaclab", "dofbot", "incision", "opening", "ppo"]
 "isaaclab_mimic" = {}
 "isaaclab_rl" = {}
 "isaaclab_tasks" = {}
-# NOTE: Add additional dependencies here
 
 [[python.module]]
 name = "dofbot"
 
 [isaaclab_settings]
-# TODO: Uncomment and list any apt dependencies here.
-#       If none, leave it commented out.
-# apt_deps = ["example_package"]
-# TODO: Uncomment and provide path to a ros_ws
-#       with rosdeps to be installed. If none,
-#       leave it commented out.
-# ros_ws = "path/from/extension_root/to/ros_ws"
