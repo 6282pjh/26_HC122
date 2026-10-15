@@ -1,0 +1,418 @@
+{
+  "verification_date": "2026-10-15",
+  "status": "passed",
+  "environment": {
+    "os": "Windows",
+    "python": "3.11.9",
+    "numpy": "2.4.1",
+    "opencv": "4.13.0"
+  },
+  "source_date": "2026-08-21",
+  "source_homography_note": "Recomputed from the 30 pixel/world correspondences reported during 2026-08-21 calibration.",
+  "method": "float64 homogeneous projection using supplied H; Euclidean XY residuals on the same 30 fitting correspondences",
+  "point_count": 30,
+  "homography": [
+    [
+      -0.8482607645397254,
+      0.008093247409268632,
+      336.5764066231466
+    ],
+    [
+      0.004418032995605737,
+      0.8541650973263754,
+      -114.18414113832492
+    ],
+    [
+      1.7640142873849765e-05,
+      5.453551735252095e-05,
+      1.0
+    ]
+  ],
+  "mean_error_mm": 0.77856980645424,
+  "rmse_mm": 0.9009238410610966,
+  "max_error_mm": 1.9815418863093985,
+  "max_point": "P09",
+  "stored_point_residual_max_difference_mm": 5.684341886080802e-14,
+  "stored_recomputed_metrics_match_atol_mm": 1e-09,
+  "robots": {
+    "right": {
+      "i2c_bus": 8,
+      "i2c_address": "0x15",
+      "base_origin_world_mm": [
+        254.0,
+        86.0,
+        27.0
+      ],
+      "yaw_deg": 90.0,
+      "robot_plus_x_world": "World +Y",
+      "robot_plus_y_world": "World -X",
+      "robot_plus_z_world": "World +Z",
+      "direction_test_pose": [
+        90,
+        126,
+        90,
+        90,
+        89,
+        173
+      ],
+      "direction_test_local_axis": "Robot -Y",
+      "direction_test_observed_world_axis": "World +X",
+      "joint1_90_to_105": "CCW"
+    },
+    "left": {
+      "i2c_bus": 1,
+      "i2c_address": "0x15",
+      "base_origin_world_mm": [
+        -124.0,
+        86.0,
+        27.0
+      ],
+      "yaw_deg": -90.0,
+      "robot_plus_x_world": "World -Y",
+      "robot_plus_y_world": "World +X",
+      "robot_plus_z_world": "World +Z",
+      "direction_test_pose": [
+        90,
+        126,
+        90,
+        90,
+        89,
+        173
+      ],
+      "direction_test_local_axis": "Robot -Y",
+      "direction_test_observed_world_axis": "World -X",
+      "joint1_90_to_105": "CCW"
+    }
+  },
+  "examples": [
+    {
+      "name": "P01",
+      "pixel": [
+        398.0,
+        132.0
+      ],
+      "world_mm": [
+        0.03641321882605553,
+        0.31948593258857727,
+        0.0
+      ],
+      "left_base_mm": [
+        85.68051406741144,
+        124.03641321882606,
+        -27.0
+      ],
+      "right_base_mm": [
+        -85.68051406741144,
+        253.96358678117394,
+        -27.0
+      ]
+    },
+    {
+      "name": "P30",
+      "pixel": [
+        231.0,
+        360.0
+      ],
+      "world_mm": [
+        140.21751403808594,
+        189.83531188964844,
+        0.0
+      ],
+      "left_base_mm": [
+        -103.83531188964842,
+        264.21751403808594,
+        -27.0
+      ],
+      "right_base_mm": [
+        103.83531188964844,
+        113.78248596191406,
+        -27.0
+      ]
+    }
+  ],
+  "point_residuals": [
+    {
+      "name": "P01",
+      "projected_xy_mm": [
+        0.03641321787659895,
+        0.3194859220715236
+      ],
+      "residual_mm": 0.32155431397824585
+    },
+    {
+      "name": "P02",
+      "projected_xy_mm": [
+        34.35813689891943,
+        0.9837243776680623
+      ],
+      "residual_mm": 1.1746071222954417
+    },
+    {
+      "name": "P03",
+      "projected_xy_mm": [
+        71.23300833811005,
+        -0.0508570591306933
+      ],
+      "residual_mm": 1.2340567257271196
+    },
+    {
+      "name": "P04",
+      "projected_xy_mm": [
+        106.49038201980024,
+        -0.23425516765803578
+      ],
+      "residual_mm": 1.508679571187443
+    },
+    {
+      "name": "P05",
+      "projected_xy_mm": [
+        140.1173094731893,
+        0.4354496126986475
+      ],
+      "residual_mm": 0.4509743647917827
+    },
+    {
+      "name": "P06",
+      "projected_xy_mm": [
+        -0.4397929628875281,
+        38.129449844024094
+      ],
+      "residual_mm": 0.45844859289047124
+    },
+    {
+      "name": "P07",
+      "projected_xy_mm": [
+        34.6274988700187,
+        37.97461175057612
+      ],
+      "residual_mm": 0.37336531044830046
+    },
+    {
+      "name": "P08",
+      "projected_xy_mm": [
+        70.57857219221415,
+        36.976456270291166
+      ],
+      "residual_mm": 1.1757497813011752
+    },
+    {
+      "name": "P09",
+      "projected_xy_mm": [
+        106.58952894361593,
+        36.81682377280228
+      ],
+      "residual_mm": 1.9815418863093985
+    },
+    {
+      "name": "P10",
+      "projected_xy_mm": [
+        138.45855649060957,
+        37.51615025662142
+      ],
+      "residual_mm": 1.6155985475387782
+    },
+    {
+      "name": "P11",
+      "projected_xy_mm": [
+        -0.0734343287667518,
+        76.58701254471005
+      ],
+      "residual_mm": 0.5915879717238941
+    },
+    {
+      "name": "P12",
+      "projected_xy_mm": [
+        34.07427070901228,
+        76.46354567833272
+      ],
+      "residual_mm": 1.0353015580465268
+    },
+    {
+      "name": "P13",
+      "projected_xy_mm": [
+        69.93986093700846,
+        76.33386750431413
+      ],
+      "residual_mm": 0.3392406481164138
+    },
+    {
+      "name": "P14",
+      "projected_xy_mm": [
+        105.02301747006231,
+        76.20701835310558
+      ],
+      "residual_mm": 0.2082940288405236
+    },
+    {
+      "name": "P15",
+      "projected_xy_mm": [
+        139.32020211946363,
+        76.08301101763334
+      ],
+      "residual_mm": 0.6848474190871008
+    },
+    {
+      "name": "P16",
+      "projected_xy_mm": [
+        -0.5470533783049544,
+        114.0281484802606
+      ],
+      "residual_mm": 0.5477770857345575
+    },
+    {
+      "name": "P17",
+      "projected_xy_mm": [
+        34.34909301286879,
+        113.9291451611025
+      ],
+      "residual_mm": 0.6547521012500972
+    },
+    {
+      "name": "P18",
+      "projected_xy_mm": [
+        70.12861029499697,
+        113.82763564400291
+      ],
+      "residual_mm": 0.21505831580643478
+    },
+    {
+      "name": "P19",
+      "projected_xy_mm": [
+        104.29355074956534,
+        113.7307068179393
+      ],
+      "residual_mm": 0.7560352910705062
+    },
+    {
+      "name": "P20",
+      "projected_xy_mm": [
+        139.3425684820944,
+        114.46362227936548
+      ],
+      "residual_mm": 0.8044636838662738
+    },
+    {
+      "name": "P21",
+      "projected_xy_mm": [
+        -0.19803897738608695,
+        150.46081919843917
+      ],
+      "residual_mm": 1.5518688657414235
+    },
+    {
+      "name": "P22",
+      "projected_xy_mm": [
+        35.458104861018235,
+        152.03990663588704
+      ],
+      "residual_mm": 0.459839758259719
+    },
+    {
+      "name": "P23",
+      "projected_xy_mm": [
+        70.31645373164899,
+        151.14144871044638
+      ],
+      "residual_mm": 0.9150154540054231
+    },
+    {
+      "name": "P24",
+      "projected_xy_mm": [
+        105.23598357752583,
+        152.72488807541734
+      ],
+      "residual_mm": 0.7623325853878634
+    },
+    {
+      "name": "P25",
+      "projected_xy_mm": [
+        139.36434229014438,
+        151.82741165581714
+      ],
+      "residual_mm": 0.6586709805712359
+    },
+    {
+      "name": "P26",
+      "projected_xy_mm": [
+        0.18084337410244014,
+        190.01132461130973
+      ],
+      "residual_mm": 0.1811976069877073
+    },
+    {
+      "name": "P27",
+      "projected_xy_mm": [
+        35.7342814938621,
+        189.96663652602072
+      ],
+      "residual_mm": 0.7350390694543533
+    },
+    {
+      "name": "P28",
+      "projected_xy_mm": [
+        70.5158288672294,
+        190.74595484459456
+      ],
+      "residual_mm": 0.9069333219378747
+    },
+    {
+      "name": "P29",
+      "projected_xy_mm": [
+        105.34168441695525,
+        190.70277646962333
+      ],
+      "residual_mm": 0.7814365022484415
+    },
+    {
+      "name": "P30",
+      "projected_xy_mm": [
+        140.21751013063863,
+        189.8353087085292
+      ],
+      "residual_mm": 0.2728257290226758
+    }
+  ],
+  "checks": {
+    "syntax_files": 9,
+    "grid_and_pixels": "passed",
+    "base_origin_rotation_roundtrip": "passed",
+    "offline_cli_cases": 5,
+    "camera_gui_access_blocked": true,
+    "sensitive_pattern_findings": [],
+    "all_files_under_5MB": true,
+    "forbidden_artifacts": "none",
+    "snapshot_resolution": [
+      640,
+      480
+    ]
+  },
+  "evidence_files": [
+    {
+      "file": "surgical_pipeline/config/calibration/face_to_face_20260821/pixel_to_world_homography_30.json",
+      "bytes": 630,
+      "sha256": "111e4a678bc81c314c53a30ba0da99a96c7e833450a090e67ebece100f6995e4"
+    },
+    {
+      "file": "surgical_pipeline/config/calibration/face_to_face_20260821/pixel_world_calibration_30.json",
+      "bytes": 6698,
+      "sha256": "d07efc4f5cbcc64c870ef1da3aa108604e7230c741c0ef1a5428658b6ef58cf6"
+    },
+    {
+      "file": "surgical_pipeline/config/calibration/face_to_face_20260821/pixel_world_calibration_30_snapshot.jpg",
+      "bytes": 111957,
+      "sha256": "295f73b2e5614eb22f45fcdea04ebd1202e89646b185d1cc4bd7c3abc54f2f41"
+    },
+    {
+      "file": "surgical_pipeline/config/calibration/face_to_face_20260821/robot_base_calibration_face_to_face.json",
+      "bytes": 1326,
+      "sha256": "862aaa5d5b9f25b431a40b53f2913b1537fe5a04652f3ce47726659da9b077e4"
+    }
+  ],
+  "not_verified": [
+    "camera capture and HSV detection",
+    "motor movement and yaw measurement",
+    "independent physical validation",
+    "robot tool-tip accuracy",
+    "policy or executor integration"
+  ]
+}
