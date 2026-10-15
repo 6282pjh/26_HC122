@@ -107,7 +107,7 @@ def main():
     previous_argv = sys.argv[:]
     try:
         for name, args in cli_cases:
-            script = PIPELINE / "vision/calibration" / name
+            script = PIPELINE / "camera/calibration" / name
             sys.argv = [str(script), *args]
             runpy.run_path(str(script), run_name="__main__")
     finally:
