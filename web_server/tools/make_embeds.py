@@ -12,8 +12,8 @@ negative_prompt가 None이면 encode_prompt 381행이 DEFAULT_NEGATIVE_PROMPT(63
 
 사용: CUDA_VISIBLE_DEVICES=<빈 GPU> python tools/make_embeds.py [--cache_dir <학습 캐시>]
       기본값: --captions captions.json, --out assets/prompt_embeds  (web_server 폴더 기준)
-필요 GPU: 텍스트 인코더를 올리므로 nvidia-smi 기준 약 17.5GB (연구실 4090 실측 피크 17,234MiB)
-출처: 연구실 RTX 4090 서버에서 2026-10-11 검증한 스크립트.
+필요 GPU: 텍스트 인코더를 올리므로 nvidia-smi 기준 약 17.5GB (RTX 4090 실측 피크 17,234MiB)
+RTX 4090 24GB에서 2026-10-11 검증.
       학습 캐시 임베딩과 비트 단위 동일, 이 임베딩으로 만든 영상이 텍스트 인코더 경로와 픽셀 동일함을 확인.
       바꾼 것은 기본 경로 2개뿐이다.
 """

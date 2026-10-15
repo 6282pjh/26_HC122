@@ -80,7 +80,7 @@ def main():
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         # [2026-10-05 수정] CPU offload 모드에서는 이 시점까지 CUDA가 초기화되지 않아,
-        # 아래 reset_peak_memory_stats()가 "RuntimeError: Invalid device argument"로 죽었다(연구실 4090 실측).
+        # 아래 reset_peak_memory_stats()가 "RuntimeError: Invalid device argument"로 죽었다(RTX 4090 실측).
         torch.cuda.init()
         pipe.enable_model_cpu_offload(gpu_id=args.gpu)
     else:

@@ -19,7 +19,7 @@ web_console/app.py 와는 파일로만 주고받는다.
   4) 절개/개복 → Cosmos-Predict2.5-2B + LoRA 로 Image2World 예측 영상 생성
        - 프롬프트는 LoRA 학습 캡션(captions.json)을 글자 그대로 사용
        - assets/prompt_embeds/ 에 미리 계산한 텍스트 임베딩이 있으면 텍스트 인코더(약 16GB)를 아예 로드하지 않는다
-         (연구실 4090 실측: 결과 픽셀 동일, GPU 피크 21.9GB → 9.5GB, 첫 생성 384초 → 195초. tools/make_embeds.py)
+         (RTX 4090 실측: 결과 픽셀 동일, GPU 피크 21.9GB → 9.5GB, 첫 생성 384초 → 195초. tools/make_embeds.py)
        - 입력 프레임은 Gemini E 촬영 이미지 (없으면 assets/reference_frame.png)
        - 432×768, 93프레임, 16fps (2차 LoRA E1 학습 해상도와 동일, 환경변수로 변경 가능)
   5) faststart 처리 후 stage="review" → 웹 콘솔에서 집도의 승인
@@ -373,12 +373,12 @@ def load_cosmos_pipeline(use_embeds: bool = False):
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA GPU가 필요합니다.")
     # CPU offload 모드에서는 이 시점까지 CUDA가 초기화되지 않을 수 있다.
-    # (연구실 4090 서버 실측: 초기화 전 CUDA 메모리 함수 호출 시 RuntimeError: Invalid device argument)
+    # (RTX 4090 실측: 초기화 전 CUDA 메모리 함수 호출 시 RuntimeError: Invalid device argument)
     torch.cuda.init()
 
     total_gb = torch.cuda.get_device_properties(COSMOS_GPU).total_memory / 2**30
     # 텍스트 인코더가 없으면 피크가 약 9.5GB라 24GB GPU에도 그대로 올릴 수 있지만,
-    # 연구실에서 검증한 경로가 offload뿐이라 auto 기준은 그대로 둔다.
+    # 검증한 경로가 offload이므로 auto 기준은 그대로 둔다.
     use_offload = COSMOS_OFFLOAD == "on" or (COSMOS_OFFLOAD == "auto" and total_gb < 40)
 
     if use_offload:
@@ -386,7 +386,7 @@ def load_cosmos_pipeline(use_embeds: bool = False):
         pipe.enable_model_cpu_offload(gpu_id=COSMOS_GPU)
         print(f"[초기화] GPU {total_gb:.0f}GB → CPU offload 모드")
     else:
-        # 전부 GPU 상주 (1차 DIS04 A6000에서 쓰던 방식)
+        # 전부 GPU 상주 (1차 학습 서버 A6000 48GB에서 쓰던 방식)
         device = torch.device(f"cuda:{COSMOS_GPU}")
         Cosmos2_5_PredictBasePipeline._execution_device = property(lambda self: device)
         pipe.transformer.to(device)
@@ -403,7 +403,7 @@ _generation_count = [0]
 
 
 def check_prerequisites():
-    """실행 전에 빠지기 쉬운 준비물을 확인한다 (연구실 서버에서 실제로 빠져 있던 것)."""
+    """실행 전에 빠지기 쉬운 준비물(ffmpeg 등)을 확인한다."""
     if shutil.which("ffmpeg") is None:
         raise RuntimeError(
             "ffmpeg 명령이 PATH에 없습니다. Whisper가 녹음을 읽을 때와 mp4 faststart에 필요합니다. "
