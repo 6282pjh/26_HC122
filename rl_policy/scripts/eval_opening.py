@@ -47,7 +47,7 @@ u = env.unwrapped
 env_w = SkrlVecEnvWrapper(env, ml_framework="torch")
 
 here = os.path.dirname(os.path.abspath(__file__))
-acfg = yaml.safe_load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "task", "dofbot", "dofbot", "tasks", "direct", "dofbot", "agents", "skrl_ppo_opening_cfg.yaml")))
+acfg = yaml.safe_load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dofbot", "tasks", "agents", "skrl_ppo_opening_cfg.yaml")))
 acfg["trainer"]["close_environment_at_exit"] = False
 acfg["agent"]["experiment"]["write_interval"] = 0
 acfg["agent"]["experiment"]["checkpoint_interval"] = 0
