@@ -161,7 +161,7 @@ class DofbotOpeningEnv(DirectRLEnv):
                 for i in range(4):
                     deg = servo[i] - 90.0
                     q.append(math.radians(-deg if inv[i] else deg))
-                # servo = (q + 90) + offset, the mapping replay_on_agx.py sends
+                # servo = (q + 90) + offset, the servo mapping used on the real arm
                 j5 = servo[4] - 90.0 - self.cfg.j5_servo_offset_deg
                 q.append(math.radians(-j5 if inv[4] else j5))
                 per_arm.append(q)

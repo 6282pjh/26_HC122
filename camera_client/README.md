@@ -28,4 +28,4 @@ python capture_client.py
 | `HC122_SERVER_URL` | `http://127.0.0.1:5050` | 웹 콘솔 주소. 같은 기기에서 돌리면 터널을 거치지 않음 |
 | `HC122_CAMERA_INDEX` | 1 | Gemini E RGB 장치 번호 |
 
-> 학습 데이터 촬영(ffmpeg 녹화)은 [`../world_model/tools/record_take.py`](../world_model/tools/record_take.py)를 사용합니다. OpenCV DSHOW로 열면 화각이 좁아지는 문제가 있어 학습 촬영에는 ffmpeg dshow 입력을 직접 씁니다.
+학습 데이터 촬영(ffmpeg 녹화)은 [`../world_model/tools/record_take.py`](../world_model/tools/record_take.py)를 사용합니다. OpenCV DSHOW로 열면 화각이 좁아지는 문제가 있어 학습 촬영에는 ffmpeg dshow 입력을 직접 씁니다.

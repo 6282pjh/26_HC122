@@ -54,7 +54,7 @@ try:
         p = torch.cuda.get_device_properties(i)
         print(f"  GPU{i}: {p.name}, {p.total_memory/2**30:.1f}GB, sm_{p.major}{p.minor}, bf16={torch.cuda.is_bf16_supported()}")
         if p.major >= 12:
-            print("  [! ] Blackwell(sm_120) — torch 2.6+cu124는 미지원. CUDA 12.8+/PyTorch 2.7+ 필요(부록 C)")
+            print("  [! ] Blackwell(sm_120) — torch 2.6+cu124는 미지원. CUDA 12.8+/PyTorch 2.7+ 필요")
 except Exception:
     pass
 try:
