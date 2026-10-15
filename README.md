@@ -61,6 +61,8 @@
   </tr>
 </table>
 
+> 각 기능은 파트별 폴더에 독립적으로 구현되어 있습니다 — ① `world_model`·`control_server`, ② `control_server`·`camera_client`, ③ `control_server`, ④ `rl_policy`(시뮬레이션 학습·평가)·`vision`(절개선 검출·좌표 보정)
+
 **1-5. 주요 실측 결과** 
 
 | 항목 | 결과 |
@@ -106,6 +108,8 @@
 ---
 
 ## **💡3. 시스템 구성도**
+
+> 이 장의 구성도 · 상태 시퀀스 · 엔티티 관계도는 **전체 시스템 설계** 기준입니다. 저장소의 코드는 파트별로 독립 구현되어 있으며(각 폴더 README 참고), 서버와 Jetson은 JSON 상태 파일(`command.json`)과 polling으로 연동했습니다. Jetson 제어 코드는 저장소에 포함하지 않았습니다.
 
 | **3-1. 서비스 흐름도** |
 |---|
@@ -157,6 +161,8 @@ stateDiagram-v2
 | [<img src="images/diagrams/erd.png" width="700" alt="엔티티 관계도">](images/diagrams/erd.png) |
 
 하나의 음성 명령(`USER_COMMAND`)에서 STT 결과 · 장면 이미지 · 검토 작업(`REVIEW_JOB`)이 파생되고, 검토 작업에 시뮬레이션 영상(`SIM_VIDEO`)과 승인(`APPROVAL`)이 연결됩니다. 승인된 작업만 로봇 명령(`ROBOT_COMMAND`)이 되며, 로봇의 응답(`ROBOT_ACK`)이 시스템 상태(`SYSTEM_STATE`)를 갱신합니다. 장면 이미지는 캘리브레이션 정보(`CALIBRATION_PROFILE`)를 거쳐 절개 목표 좌표(`TARGET_COORDINATE`)로 변환되어 로봇 명령에 첨부됩니다.
+
+> 엔티티 관계도는 설계 기준입니다. 실제 서버 구현은 데이터베이스 없이 JSON 상태 파일(job 상태, `capture_command.json`, `command.json`)로 동작하며, 좌표 변환은 `vision` 폴더에서 별도로 실행합니다.
 
 
 ---
