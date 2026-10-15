@@ -1,0 +1,423 @@
+{
+  "created_at": "2026-08-21",
+  "camera": {
+    "index": 0,
+    "resolution": [
+      640,
+      480
+    ]
+  },
+  "grid": {
+    "cols": 5,
+    "rows": 6,
+    "dx_mm": 35.0,
+    "dy_mm": 38.0,
+    "width_mm": 140.0,
+    "height_mm": 190.0
+  },
+  "world_frame": {
+    "origin": "P01",
+    "positive_x": "P01 -> P05",
+    "positive_y": "P01 -> P26",
+    "positive_z": "upward from surgical surface",
+    "surface_z_mm": 0.0
+  },
+  "points": [
+    {
+      "name": "P01",
+      "pixel": [
+        398,
+        132
+      ],
+      "world": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.32155431397824585
+    },
+    {
+      "name": "P02",
+      "pixel": [
+        357,
+        133
+      ],
+      "world": [
+        35.0,
+        0.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.1746071222954415
+    },
+    {
+      "name": "P03",
+      "pixel": [
+        313,
+        132
+      ],
+      "world": [
+        70.0,
+        0.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.2340567257271764
+    },
+    {
+      "name": "P04",
+      "pixel": [
+        271,
+        132
+      ],
+      "world": [
+        105.0,
+        0.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.508679571187443
+    },
+    {
+      "name": "P05",
+      "pixel": [
+        231,
+        133
+      ],
+      "world": [
+        140.0,
+        0.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.45097436479178277
+    },
+    {
+      "name": "P06",
+      "pixel": [
+        399,
+        177
+      ],
+      "world": [
+        0.0,
+        38.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.45844859289047124
+    },
+    {
+      "name": "P07",
+      "pixel": [
+        357,
+        177
+      ],
+      "world": [
+        35.0,
+        38.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.37336531044830235
+    },
+    {
+      "name": "P08",
+      "pixel": [
+        314,
+        176
+      ],
+      "world": [
+        70.0,
+        38.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.1757497813011506
+    },
+    {
+      "name": "P09",
+      "pixel": [
+        271,
+        176
+      ],
+      "world": [
+        105.0,
+        38.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.9815418863093988
+    },
+    {
+      "name": "P10",
+      "pixel": [
+        233,
+        177
+      ],
+      "world": [
+        140.0,
+        38.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.6155985475387844
+    },
+    {
+      "name": "P11",
+      "pixel": [
+        399,
+        223
+      ],
+      "world": [
+        0.0,
+        76.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.5915879717239222
+    },
+    {
+      "name": "P12",
+      "pixel": [
+        358,
+        223
+      ],
+      "world": [
+        35.0,
+        76.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.0353015580465268
+    },
+    {
+      "name": "P13",
+      "pixel": [
+        315,
+        223
+      ],
+      "world": [
+        70.0,
+        76.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.3392406481164278
+    },
+    {
+      "name": "P14",
+      "pixel": [
+        273,
+        223
+      ],
+      "world": [
+        105.0,
+        76.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.20829402884052672
+    },
+    {
+      "name": "P15",
+      "pixel": [
+        232,
+        223
+      ],
+      "world": [
+        140.0,
+        76.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.6848474190870726
+    },
+    {
+      "name": "P16",
+      "pixel": [
+        400,
+        268
+      ],
+      "world": [
+        0.0,
+        114.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.5477770857345575
+    },
+    {
+      "name": "P17",
+      "pixel": [
+        358,
+        268
+      ],
+      "world": [
+        35.0,
+        114.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.6547521012500972
+    },
+    {
+      "name": "P18",
+      "pixel": [
+        315,
+        268
+      ],
+      "world": [
+        70.0,
+        114.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.21505831580640078
+    },
+    {
+      "name": "P19",
+      "pixel": [
+        274,
+        268
+      ],
+      "world": [
+        105.0,
+        114.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.7560352910705029
+    },
+    {
+      "name": "P20",
+      "pixel": [
+        232,
+        269
+      ],
+      "world": [
+        140.0,
+        114.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.8044636838662738
+    },
+    {
+      "name": "P21",
+      "pixel": [
+        400,
+        312
+      ],
+      "world": [
+        0.0,
+        152.0,
+        0.0
+      ],
+      "reprojection_error_mm": 1.5518688657414235
+    },
+    {
+      "name": "P22",
+      "pixel": [
+        357,
+        314
+      ],
+      "world": [
+        35.0,
+        152.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.45983975825971907
+    },
+    {
+      "name": "P23",
+      "pixel": [
+        315,
+        313
+      ],
+      "world": [
+        70.0,
+        152.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.9150154540054763
+    },
+    {
+      "name": "P24",
+      "pixel": [
+        273,
+        315
+      ],
+      "world": [
+        105.0,
+        152.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.7623325853878634
+    },
+    {
+      "name": "P25",
+      "pixel": [
+        232,
+        314
+      ],
+      "world": [
+        140.0,
+        152.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.6586709805712359
+    },
+    {
+      "name": "P26",
+      "pixel": [
+        400,
+        360
+      ],
+      "world": [
+        0.0,
+        190.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.18119760698770726
+    },
+    {
+      "name": "P27",
+      "pixel": [
+        357,
+        360
+      ],
+      "world": [
+        35.0,
+        190.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.7350390694543534
+    },
+    {
+      "name": "P28",
+      "pixel": [
+        315,
+        361
+      ],
+      "world": [
+        70.0,
+        190.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.9069333219378279
+    },
+    {
+      "name": "P29",
+      "pixel": [
+        273,
+        361
+      ],
+      "world": [
+        105.0,
+        190.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.7814365022484415
+    },
+    {
+      "name": "P30",
+      "pixel": [
+        231,
+        360
+      ],
+      "world": [
+        140.0,
+        190.0,
+        0.0
+      ],
+      "reprojection_error_mm": 0.2728257290226758
+    }
+  ],
+  "validation_from_terminal": {
+    "mean_error_mm_reported": 0.78,
+    "rmse_mm_reported": 0.901,
+    "max_error_mm_reported": 1.962,
+    "independent_midpoint_validation": "completed by user"
+  }
+}
