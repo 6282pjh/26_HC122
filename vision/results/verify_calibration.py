@@ -1,6 +1,6 @@
 """Recompute supplied planar calibration residuals without opening hardware.
 
-Run from the repository root: python -B src/vision/results/verify_calibration.py
+Run from the repository root: python -B vision/results/verify_calibration.py
 Only coordinate_transform is imported from the supplied scripts. In particular,
 calibrate_base_yaw and webcam_record are compiled, never imported or executed.
 """
