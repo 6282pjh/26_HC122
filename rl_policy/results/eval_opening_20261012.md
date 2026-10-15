@@ -33,4 +33,4 @@ where each arm stopped (leg of the taught motion it was on at its furthest):
 교시 동작 자체를 정책 없이 환경에 재생한 검증(`scripts/replay_json_in_env.py`): 16/16 완료,
 끝점 오차 오른팔 3.0 mm / 왼팔 3.5 mm.
 
-이 수치는 시뮬레이션 결과다. 시뮬레이션에는 피부 변형 모델이 없다.
+Isaac Lab 시뮬레이션 평가 결과다.

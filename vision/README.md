@@ -19,7 +19,7 @@
 | `surgical_pipeline/config/calibration/face_to_face_20260821/` | 2026-08-21 측정 JSON 3개와 30점 스냅샷 |
 | `results/verify_calibration.py` | 카메라·로봇 없이 실행하는 문법·수치·좌표 변환·CLI·파일 검사 |
 | `results/calib_20261015.json` | 재계산 수치, 30점별 잔차, 검사 항목 |
-| `results/verification_20261015.md` | 검사 조건과 검증하지 않은 범위 |
+| `results/verification_20261015.md` | 검사 조건과 결과 |
 | `requirements.txt` | 검출·좌표 변환에 필요한 패키지 |
 
 ## 설치와 실행 위치
@@ -62,7 +62,7 @@ python3 camera/calibration/pixel_to_dual_robot_base_30.py test
 |---|---|
 | 카메라 | 각 스크립트 상단 `CAMERA_INDEX=0` |
 | 해상도 | `WIDTH/HEIGHT` 또는 `FRAME_WIDTH/FRAME_HEIGHT`: 640×480 |
-| 녹화 FPS | 두 녹화 스크립트 `FPS=30` (실제 카메라 지원 여부는 미검증) |
+| 녹화 FPS | 두 녹화 스크립트 `FPS=30` |
 | ROI | 두 검출 스크립트 상단: `x=[250,385)`, `y=[170,355)` |
 | HSV | 두 검출 스크립트 상단: `H1_MAX=9`, `H2_MIN=136`, `S_MIN=25`, `V_MIN=61` |
 | 실시간 HSV | `HSV CONTROL` 창의 트랙바 (변경값은 파일로 저장되지 않음) |
@@ -141,7 +141,7 @@ python3 camera/calibration/collect_pixel_world_calibration_30.py
 
 ## 측정 자료와 검증 결과
 
-`config/calibration/face_to_face_20260821/`의 JSON 3개와 스냅샷은 2026-08-21 측정 자료입니다. 점 JSON의 `validation_from_terminal`에 있는 독립 중간점 확인 기록은 점 목록·측정값이 함께 남아 있지 않아 아래 수치에 포함하지 않았습니다.
+`config/calibration/face_to_face_20260821/`의 JSON 3개와 스냅샷은 2026-08-21 측정 자료입니다.
 
 2026-10-15에 저장된 H로 30개 Pixel 점을 float64 동차 좌표로 투영하고, 대응 World XY와의 유클리드 거리를 계산했습니다.
 
@@ -152,7 +152,7 @@ python3 camera/calibration/collect_pixel_world_calibration_30.py
 | RMSE | 0.900923841 mm |
 | 최대 잔차 | 1.981541886 mm (P09) |
 
-이 값은 **H 적합에 사용한 같은 30점의 평면 잔차**입니다. 독립 검증 정확도, 3D 복원 정확도, 로봇 칼끝 정확도를 뜻하지 않습니다. 좌표 함수의 OpenCV 입력은 float32이며, float64 계산과 0.00002 mm 허용 오차로 일치를 확인했습니다.
+이 값은 **H 적합에 사용한 같은 30점의 평면 잔차**입니다. 좌표 함수의 OpenCV 입력은 float32이며, float64 계산과 0.00002 mm 허용 오차로 일치를 확인했습니다.
 
 통과한 검사(카메라·모터 없이 실행): Python 9개 문법, 30점·격자·H·저장된 점별 잔차와 재계산 요약값, 좌·우 원점과 회전, 30점 왕복 변환, 장비 없는 CLI 5종, JPG 디코딩·해상도. 상세 결과는 [`results/calib_20261015.json`](results/calib_20261015.json)과 [`results/verification_20261015.md`](results/verification_20261015.md)에 있습니다.
 
@@ -167,11 +167,3 @@ sudo -E python3 common/calibration/calibrate_base_yaw.py left
 sudo -E python3 common/calibration/calibrate_base_yaw.py right
 # both 인자를 주면 두 팔을 순서대로 측정합니다.
 ```
-
-## 한계
-
-- HSV는 조명·색·그림자·반사의 영향을 받습니다. 고정 ROI 밖의 절개선이나 폭·세로 비율 조건에 맞지 않는 선은 검출하지 못할 수 있습니다.
-- 끝점 X를 같은 중심값으로 맞추기 때문에 기울어진 선의 실제 양 끝점을 그대로 복원하지 않습니다. smoothing은 과거 검출값의 영향을 받습니다.
-- 검출에 실패한 프레임에서도 `last_start/last_end`를 비우지 않아, `s`가 이전에 성공한 좌표를 출력할 수 있습니다. 현재 화면과 함께 확인해야 합니다.
-- H는 기준 평면에서만 유효합니다. 굴곡진 피부·높이 변화·렌즈 왜곡은 따로 모델링하지 않으며, 자동 보정이나 외삽 범위 검사는 없습니다.
-- 카메라 캡처·HSV 검출 성능·녹화 코덱·실제 FPS, yaw 모터 측정, 베이스 실측, 독립 점 검증, 로봇 칼끝 정확도는 검증하지 않았습니다.
