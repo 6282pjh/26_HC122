@@ -5,7 +5,7 @@
 ## 동작
 
 ```
-웹 콘솔 녹음 시작 ─▶ control_server: capture_command.json = {job_id, action: start, status: pending}
+웹 콘솔 녹음 시작 ─▶ web_server: capture_command.json = {job_id, action: start, status: pending}
                                    ▲ 0.5초마다 GET /capture/pending
 capture_client ─ ACK(POST /capture/ack) ─▶ 워밍업 5프레임 버림 → 첫 프레임 PNG 업로드(POST /capture/upload) → 녹화 시작
 웹 콘솔 녹음 종료 ─▶ action: stop ─▶ capture_client 녹화 종료 (recordings/{job_id}.mp4)
