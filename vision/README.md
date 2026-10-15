@@ -6,7 +6,7 @@
 
 ## 파일 구성과 역할
 
-아래 표는 `src/vision/` 기준 경로다. 원래 `surgical_pipeline`을 기준으로 한 `parents[2]` 경로와 `common.coordinates` import를 유지했다.
+아래 표는 `vision/` 기준 경로다. 원래 `surgical_pipeline`을 기준으로 한 `parents[2]` 경로와 `common.coordinates` import를 유지했다.
 
 | 경로 | 역할 |
 |---|---|
@@ -30,7 +30,7 @@
 저장소 루트에서 아래 디렉터리로 이동한다. Python 3, NumPy, GUI 기능이 있는 OpenCV가 필요하다. 원본 장비의 JetPack·Python·라이브러리 버전 기록은 제공되지 않았다. 이번 파일 검증 환경은 [검증 기록](results/verification_20261015.md)에 별도로 적었다.
 
 ```bash
-cd src/vision/surgical_pipeline
+cd vision/surgical_pipeline
 python3 -m pip install numpy opencv-python
 ```
 
@@ -180,8 +180,8 @@ sudo -E python3 common/calibration/calibrate_base_yaw.py right
 - 검출 실패 프레임에서 `last_start/last_end`를 비우지 않는 원본 구조라 `s`가 이전 성공 좌표를 출력할 수 있다. 현재 화면 상태와 함께 확인해야 한다.
 - H는 기준 평면에만 유효하다. 비평면 피부·높이 변화·렌즈 왜곡을 별도 모델링하지 않는다. 자동 보정이나 외삽 범위 검사는 없다.
 - 카메라 캡처·HSV 검출 성능·녹화 코덱·실제 FPS, yaw 모터 측정, 베이스 실측, 독립 점 검증, 로봇 칼끝 정확도는 이번에 검증하지 않았다.
-- 전달된 파일에 제어·정책 자동 연결은 없다. 가이드의 향후 연결 요구사항을 구현 완료로 기록하지 않는다. 실제 main에는 가이드에서 언급한 `src/rl_policy/INTERFACE.md`가 없어 해당 파일을 통한 호환성 확인도 하지 않았다.
+- 전달된 파일에 제어·정책 자동 연결은 없다. 가이드의 향후 연결 요구사항을 구현 완료로 기록하지 않는다. 실제 main에는 가이드에서 언급한 `rl_policy/INTERFACE.md`가 없어 해당 파일을 통한 호환성 확인도 하지 않았다.
 
 ## 루트 README 발췌 후보
 
-핵심 함수는 `src/vision/surgical_pipeline/common/coordinates/coordinate_transform.py`의 `pixel_to_world()`, `world_to_robot()`, `pixel_to_dual_robot()`이다. 동차 좌표 정규화와 yaw 역회전·원점 이동을 발췌할 수 있다. 루트 README는 이번 변경에서 수정하지 않았다.
+핵심 함수는 `vision/surgical_pipeline/common/coordinates/coordinate_transform.py`의 `pixel_to_world()`, `world_to_robot()`, `pixel_to_dual_robot()`이다. 동차 좌표 정규화와 yaw 역회전·원점 이동을 발췌할 수 있다. 루트 README는 이번 변경에서 수정하지 않았다.
