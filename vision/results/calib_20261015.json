@@ -2,10 +2,10 @@
   "verification_date": "2026-10-15",
   "status": "passed",
   "environment": {
-    "os": "Windows",
-    "python": "3.11.9",
-    "numpy": "2.4.1",
-    "opencv": "4.13.0"
+    "os": "Linux",
+    "python": "3.13.16",
+    "numpy": "2.5.3",
+    "opencv": "5.0.0"
   },
   "source_date": "2026-08-21",
   "source_homography_note": "Recomputed from the 30 pixel/world correspondences reported during 2026-08-21 calibration.",
