@@ -3,7 +3,7 @@
      ============================================================ -->
 <div align="center">
 
-<img alt="NVIDIA Cosmos" src="assets/brand/cosmos-logo.png" width="274">
+<img alt="NVIDIA Cosmos" src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/brand/cosmos-logo.png" width="274">
 
 # NVIDIA Cosmos
 
@@ -13,7 +13,7 @@
 
 [![Models](https://img.shields.io/badge/-Cosmos%203%20models-ffd21e?logo=huggingface&logoColor=white&labelColor=555)](https://huggingface.co/collections/nvidia/cosmos3)
 [![Paper](https://img.shields.io/badge/-Technical%20Report-76b900?logo=arxiv&logoColor=white&labelColor=555)](https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf)
-[![Website](assets/brand/badge-website.svg)](https://research.nvidia.com/labs/cosmos-lab/cosmos3/)
+[![Website](https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/brand/badge-website.svg)](https://research.nvidia.com/labs/cosmos-lab/cosmos3/)
 [![Discussions](https://img.shields.io/badge/-Discussions-181717?logo=github&logoColor=white&labelColor=555)](https://github.com/NVIDIA/cosmos/discussions)
 
 [**Try it in your browser**](https://build.nvidia.com/nvidia/cosmos3-nano-reasoner) · [**Quickstart**](#generate-your-first-video) · [**Find your path**](#find-your-path) · [**Model Family**](#models)
@@ -27,30 +27,30 @@
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="assets/demos/physics_newton_cradle.gif" alt="Physics-aware generation: Newton's cradle">
-      <sub><a href="cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Physics-aware generation</b></a><br>A Newton's cradle in motion: momentum transfer rendered with physical fidelity</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/physics_newton_cradle.gif" alt="Physics-aware generation: Newton's cradle">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Physics-aware generation</b></a><br>A Newton's cradle in motion: momentum transfer rendered with physical fidelity</sub>
     </td>
     <td align="center" width="33%">
-      <img src="assets/demos/transfer_worldscenario.gif" alt="World-scenario transfer: control layout to photoreal driving video">
-      <sub><a href="cookbooks/cosmos3/generator/transfer/run_video_transfer_with_vllm_omni.ipynb"><b>Transfer</b></a><br>World-scenario control layout → photoreal driving video</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/transfer_worldscenario.gif" alt="World-scenario transfer: control layout to photoreal driving video">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/generator/transfer/run_video_transfer_with_vllm_omni.ipynb"><b>Transfer</b></a><br>World-scenario control layout → photoreal driving video</sub>
     </td>
     <td align="center" width="33%">
-      <img src="assets/demos/policy_screwdriver.gif" alt="Robot policy executing a manipulation task">
-      <sub><a href="cookbooks/cosmos3/generator/action/run_policy_with_vllm_omni.ipynb"><b>Action policy</b></a><br>Policy run: "put the screwdriver and the glove in the purple container"</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/policy_screwdriver.gif" alt="Robot policy executing a manipulation task">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/generator/action/run_policy_with_vllm_omni.ipynb"><b>Action policy</b></a><br>Policy run: "put the screwdriver and the glove in the purple container"</sub>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <img src="assets/demos/driving_sim_falling_rocks.gif" alt="Driving simulation for autonomous vehicles">
-      <sub><a href="cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Simulation</b></a><br>Generate synthetic data and create simulation for autonomous driving</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/driving_sim_falling_rocks.gif" alt="Driving simulation for autonomous vehicles">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Simulation</b></a><br>Generate synthetic data and create simulation for autonomous driving</sub>
     </td>
     <td align="center" width="33%">
-      <img src="assets/demos/fd_egocentric_repair_poses.gif" alt="Forward dynamics egocentric rollout">
-      <sub><a href="cookbooks/cosmos3/generator/action/run_fd_with_vllm_omni.ipynb"><b>Action-conditioned World Model</b></a><br>Forward dynamics: egocentric rollout from input camera + hand pose</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/fd_egocentric_repair_poses.gif" alt="Forward dynamics egocentric rollout">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/generator/action/run_fd_with_vllm_omni.ipynb"><b>Action-conditioned World Model</b></a><br>Forward dynamics: egocentric rollout from input camera + hand pose</sub>
     </td>
     <td align="center" width="33%">
-      <img src="assets/demos/reasoner_driving_hazard.gif" alt="World Reasoner: dashcam hazard anticipation">
-      <sub><a href="cookbooks/cosmos3/reasoner/run_with_vllm.ipynb"><b>World reasoning</b></a><br>Reason in complex real-world scenarios: a rolling ball means a child or pet may follow</sub>
+      <img src="https://raw.githubusercontent.com/NVIDIA/cosmos/main/assets/demos/reasoner_driving_hazard.gif" alt="World Reasoner: dashcam hazard anticipation">
+      <sub><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/reasoner/run_with_vllm.ipynb"><b>World reasoning</b></a><br>Reason in complex real-world scenarios: a rolling ball means a child or pet may follow</sub>
     </td>
   </tr>
 </table>
@@ -81,12 +81,12 @@ This repository is the home of the models: everything for exploring, running, an
   <tr><th align="left" width="46%">I want to…</th><th align="left" width="42%">Go to</th><th align="left">Time</th></tr>
   <tr><td><b>See it work</b> — zero install</td><td><a href="https://build.nvidia.com/nvidia/cosmos3-nano">Video generation</a>, <a href="https://build.nvidia.com/nvidia/cosmos3-nano-reasoner">visual reasoning</a></td><td>1 min</td></tr>
   <tr><td><b>Generate my first video</b></td><td><a href="#generate-your-first-video">Quickstart ↓</a></td><td>10 min</td></tr>
-  <tr><td><b>Reason over images &amp; video</b></td><td><a href="cookbooks/cosmos3/reasoner/run_with_vllm.ipynb">Reasoner notebook</a></td><td>10 min</td></tr>
-  <tr><td><b>Serve an OpenAI-compatible API</b></td><td><a href="cookbooks/cosmos3/README.md">Serving setup guide</a> — vLLM, vLLM-Omni, or NIM</td><td>30 min</td></tr>
-  <tr><td><b>Post-train on my own data</b> — SFT, distillation, RL</td><td><a href="https://github.com/NVIDIA/cosmos-framework">Cosmos Framework</a>, then <a href="evaluation/">evaluate here</a></td><td>hours</td></tr>
-  <tr><td><b>Explore runnable notebooks</b></td><td><a href="cookbooks/cosmos3/README.md">Cookbooks</a></td><td>browse</td></tr>
-  <tr><td><b>Evaluate a model</b></td><td><a href="evaluation/">Evaluation suites</a> — PAIBench, Physics-IQ, VLMEvalKit</td><td>hours</td></tr>
-  <tr><td><b>Check latency &amp; throughput</b></td><td><a href="inference_benchmarks.md">Benchmarks</a></td><td>browse</td></tr>
+  <tr><td><b>Reason over images &amp; video</b></td><td><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/reasoner/run_with_vllm.ipynb">Reasoner notebook</a></td><td>10 min</td></tr>
+  <tr><td><b>Serve an OpenAI-compatible API</b></td><td><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/README.md">Serving setup guide</a> — vLLM, vLLM-Omni, or NIM</td><td>30 min</td></tr>
+  <tr><td><b>Post-train on my own data</b> — SFT, distillation, RL</td><td><a href="https://github.com/NVIDIA/cosmos-framework">Cosmos Framework</a>, then <a href="https://github.com/NVIDIA/cosmos/tree/main/evaluation/">evaluate here</a></td><td>hours</td></tr>
+  <tr><td><b>Explore runnable notebooks</b></td><td><a href="https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/README.md">Cookbooks</a></td><td>browse</td></tr>
+  <tr><td><b>Evaluate a model</b></td><td><a href="https://github.com/NVIDIA/cosmos/tree/main/evaluation/">Evaluation suites</a> — PAIBench, Physics-IQ, VLMEvalKit</td><td>hours</td></tr>
+  <tr><td><b>Check latency &amp; throughput</b></td><td><a href="https://github.com/NVIDIA/cosmos/blob/main/inference_benchmarks.md">Benchmarks</a></td><td>browse</td></tr>
 </table>
 
 ## Generate your first video
@@ -114,7 +114,7 @@ video = pipe(prompt="A mobile robot navigates a warehouse aisle and stops at a s
 export_to_video(video, "first_video.mp4", fps=24)
 ```
 
-First run downloads the 16B checkpoint; diffusion steps are compute-heavy, so long step times are normal. Full options, image/sound modes, and every other backend: [audiovisual cookbooks](cookbooks/cosmos3/generator/audiovisual/) · setup issues: [environment setup guide](cookbooks/cosmos3/README.md).
+First run downloads the 16B checkpoint; diffusion steps are compute-heavy, so long step times are normal. Full options, image/sound modes, and every other backend: [audiovisual cookbooks](https://github.com/NVIDIA/cosmos/tree/main/cookbooks/cosmos3/generator/audiovisual/) · setup issues: [environment setup guide](https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/README.md).
 
 
 ## Models
@@ -138,7 +138,7 @@ First run downloads the 16B checkpoint; diffusion steps are compute-heavy, so lo
 | [Cosmos3-Nano-Policy-DROID](https://huggingface.co/nvidia/Cosmos3-Nano-Policy-DROID) | Nano | Open SOTA DROID robot policy, runs on RTX Pro 6000 |
 | [Cosmos3-Edge-Policy-DROID](https://huggingface.co/nvidia/Cosmos3-Edge-Policy-DROID) | Edge | DROID robot policy at edge-deployable scale |
 
-Full I/O specs, generation settings, and supported action embodiments: [model reference](docs/reference/models.md).
+Full I/O specs, generation settings, and supported action embodiments: [model reference](https://github.com/NVIDIA/cosmos/blob/main/docs/reference/models.md).
 
 ## Repository map
 
@@ -164,15 +164,15 @@ Training, optimization, and deployment tooling lives in [Cosmos Framework](https
 | [Cosmos Curator](https://github.com/NVIDIA/cosmos-curator) | Distributed data curation: processing, annotation, filtering, dedup |
 | [Cosmos Evaluator](https://github.com/NVIDIA/cosmos-evaluator) | Automated evaluation system for world generation & reasoning outputs |
 
-Cosmos 3 runs on Diffusers, Transformers, vLLM, vLLM-Omni, SGLang, TensorRT-LLM, and NIM — pick a backend in the [environment setup guide](cookbooks/cosmos3/README.md).
+Cosmos 3 runs on Diffusers, Transformers, vLLM, vLLM-Omni, SGLang, TensorRT-LLM, and NIM — pick a backend in the [environment setup guide](https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/README.md).
 
 ## Community & contributing
 
-Questions and ideas → [Discussions](https://github.com/NVIDIA/cosmos/discussions). Bugs → [Issues](https://github.com/NVIDIA/cosmos/issues). Code → [CONTRIBUTING.md](CONTRIBUTING.md).
+Questions and ideas → [Discussions](https://github.com/NVIDIA/cosmos/discussions). Bugs → [Issues](https://github.com/NVIDIA/cosmos/issues). Code → [CONTRIBUTING.md](https://github.com/NVIDIA/cosmos/blob/main/CONTRIBUTING.md).
 
 ## Limitations & safety
 
-Cosmos 3 can produce artifacts in long, high-resolution, or physically complex outputs (temporal inconsistency, object morphing, implausible dynamics). Safety-critical applications need additional validation and system-level safety analysis. Generation ships with [guardrails](cookbooks/cosmos3/README.md) on by default.
+Cosmos 3 can produce artifacts in long, high-resolution, or physically complex outputs (temporal inconsistency, object morphing, implausible dynamics). Safety-critical applications need additional validation and system-level safety analysis. Generation ships with [guardrails](https://github.com/NVIDIA/cosmos/blob/main/cookbooks/cosmos3/README.md) on by default.
 
 ## Citation & license
 
