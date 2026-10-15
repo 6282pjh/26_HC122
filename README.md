@@ -61,7 +61,7 @@
   </tr>
 </table>
 
-> 각 기능은 파트별 폴더에 독립적으로 구현되어 있습니다 — ① `world_model`·`control_server`, ② `control_server`·`camera_client`, ③ `control_server`, ④ `rl_policy`(시뮬레이션 학습·평가)·`vision`(절개선 검출·좌표 보정)
+> 각 기능은 파트별 폴더에 독립적으로 구현되어 있습니다 — ① `world_model`·`web_server`, ② `web_server`·`camera_client`, ③ `web_server`, ④ `rl_policy`(시뮬레이션 학습·평가)·`vision`(절개선 검출·좌표 보정)
 
 **1-5. 주요 실측 결과** 
 
@@ -179,25 +179,25 @@ stateDiagram-v2
 ## **💡5. 핵심 소스코드**
 > <sub>각 파트의 핵심 부분을 실제 코드 그대로 캡처했습니다. 제목 옆 링크를 누르면 해당 줄로 이동합니다.</sub>
 
-### 5-1. 음성 명령 분류 — control_server ([`remote_realtime_listener.py` L198–217](control_server/remote_realtime_listener.py#L198-L217))
+### 5-1. 음성 명령 분류 — web_server ([`remote_realtime_listener.py` L198–217](web_server/remote_realtime_listener.py#L198-L217))
 <img src="images/code/code_01_classify.png" alt="음성 명령 분류 코드">
 
 - 키워드(`절개` / `개복` / `수술`+`완료·끝`)로 **먼저** 판단하고, 맞는 키워드가 없을 때만 LLM이 STT 오인식(예: "개복"→"복구")을 보정합니다.
 - LLM 답은 정규식으로 한 단어만 뽑고, `GENERATIVE_ACTIONS`(절개·개복)에 들 때만 받아들입니다. 승인 화면 없이 바로 실행되는 "수술 완료"는 LLM이 만들 수 없고 키워드로만 인정됩니다.
 - LLM 호출이 실패하면 `None`을 돌려 키워드 결과만 사용합니다.
 
-### 5-2. LoRA 월드 모델 예측 영상 생성 — control_server ([`remote_realtime_listener.py` L504–517](control_server/remote_realtime_listener.py#L504-L517))
+### 5-2. LoRA 월드 모델 예측 영상 생성 — web_server ([`remote_realtime_listener.py` L504–517](web_server/remote_realtime_listener.py#L504-L517))
 <img src="images/code/code_02_generate.png" alt="예측 영상 생성 코드">
 
-- `pipe`는 Cosmos-Predict2.5-2B에 2차 학습 LoRA(rank 16)를 불러와 합친 파이프라인입니다([L366–368](control_server/remote_realtime_listener.py#L366-L368)).
+- `pipe`는 Cosmos-Predict2.5-2B에 2차 학습 LoRA(rank 16)를 불러와 합친 파이프라인입니다([L366–368](web_server/remote_realtime_listener.py#L366-L368)).
 - `image`는 명령 시점에 촬영한 현재 장면 1장이며, 학습 클립과 같은 전처리(960:528 크롭 → bilinear 768×432)를 거칩니다.
 - `text_args`에는 미리 계산한 캡션 임베딩을 넣어 텍스트 인코더(약 16GB)를 로드하지 않습니다. GPU 피크가 21.4GB에서 9.5GB로 줄었고 결과는 픽셀 단위로 같습니다.
 - 432×768 · 93프레임 · 30 step · guidance 7.0 · 고정 seed로 생성하고, mp4 faststart 처리가 끝난 **뒤에만** 웹 콘솔을 검토 단계로 넘깁니다.
 
-### 5-3. 승인 명령 ACK 동기화 — control_server ([`web_console/app.py` L339–355](control_server/web_console/app.py#L339-L355))
+### 5-3. 승인 명령 ACK 동기화 — web_server ([`web_console/app.py` L339–355](web_server/web_console/app.py#L339-L355))
 <img src="images/code/code_03_ack.png" alt="Jetson ACK 처리 코드">
 
-- 서버는 승인된 명령을 `command.json`에 게시만 하고 Jetson이 주기적으로 가져갑니다. 승인할 때마다 고유 `job_id`를 새로 만들고, 임시 파일에 쓴 뒤 `os.replace`로 원자적으로 교체합니다([L66–83](control_server/web_console/app.py#L66-L83)).
+- 서버는 승인된 명령을 `command.json`에 게시만 하고 Jetson이 주기적으로 가져갑니다. 승인할 때마다 고유 `job_id`를 새로 만들고, 임시 파일에 쓴 뒤 `os.replace`로 원자적으로 교체합니다([L66–83](web_server/web_console/app.py#L66-L83)).
 - Jetson이 보낸 ACK의 `job_id`가 현재 명령과 다르면 `409`로 거부해, 늦게 도착한 이전 응답이 최신 상태를 덮어쓰지 못하게 합니다.
 
 ### 5-4. 24GB GPU에서의 LoRA 학습 — world_model ([`server_kit/train_lora_4090.py` L541–562](world_model/server_kit/train_lora_4090.py#L541-L562))
@@ -231,7 +231,7 @@ stateDiagram-v2
 │   ├── diagrams/               # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
 │   ├── code/                   # 핵심 소스코드 캡처
 │   └── team/                   # 팀원 사진
-├── control_server/             # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
+├── web_server/                 # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
 │   ├── remote_realtime_listener.py
 │   ├── web_console/            # app.py, 촬영 라우트, iPad 화면(templates, static)
 │   ├── capture_bridge/
