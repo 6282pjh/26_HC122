@@ -29,7 +29,7 @@ F_MAX="${F_MAX:-1.0}"; F_MIN="${F_MIN:-0.2}"; LOG_EVERY="${LOG_EVERY:-10}"
 (( H % 16 == 0 && W % 16 == 0 )) || { echo "[X] H/W는 16의 배수여야 함"; exit 1; }
 PY="${CONDA_PREFIX:-}/bin/python"; ACC="${CONDA_PREFIX:-}/bin/accelerate"
 [ -x "$ACC" ] || { echo "[X] conda activate $CONDA_ENV_PREFIX 먼저 (accelerate 절대경로 없음)"; exit 1; }
-# [HDD판] 공유 서버: 지정 GPU를 이미 누가 쓰고 있으면 경고 (Isaac Lab 학습 등과 겹치면 OOM)
+# 지정 GPU가 이미 사용 중이면 경고 (메모리 부족 방지)
 if command -v nvidia-smi >/dev/null; then
   for g in $(echo "$GPU" | tr ',' ' '); do
     used=$(nvidia-smi -i "$g" --query-gpu=memory.used --format=csv,noheader,nounits 2>/dev/null | tr -dc '0-9')

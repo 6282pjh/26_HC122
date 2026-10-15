@@ -2,7 +2,7 @@
 
 월드 모델이 미래를 예측하려면 **명령 시점의 현재 수술 장면**이 필요합니다. camera_client는 Gemini E 카메라가 연결된 노트북에서 동작하며, 집도의가 웹 콘솔에서 녹음을 시작하는 순간 수술대를 촬영해 서버로 올립니다. 이 사진이 Cosmos 예측 영상의 입력 프레임이 되고, 녹음이 끝날 때까지 장면을 함께 녹화합니다.
 
-<img src="../images/feature_stt.png" width="640" alt="음성 명령과 환경 촬영">
+<img src="../web_server/assets/reference_frame.png" width="640" alt="Gemini E로 촬영한 수술 장면 (예측 입력 프레임)">
 
 ## 동작 흐름
 

@@ -52,8 +52,7 @@ def start_gpu_trace(path: Path):
 
 def gpu_guard(max_used_mb: int):
     """대상 GPU(CUDA_VISIBLE_DEVICES의 첫 번째)를 다른 프로세스가 쓰고 있으면 모델을 올리기 전에 멈춘다.
-    Cosmos 추론 피크가 nvidia-smi 기준 약 21.4GB라서, 다른 사람이 쓰는 GPU에서 돌리면
-    그 사람 작업이 OOM으로 죽을 수 있다(공유 서버)."""
+    Cosmos 추론 피크가 nvidia-smi 기준 약 21.4GB라서, 빈 GPU에서만 실행한다."""
     vis = os.environ.get("CUDA_VISIBLE_DEVICES")
     if not vis:
         sys.exit("[중단] CUDA_VISIBLE_DEVICES로 GPU 한 장을 지정해야 함")

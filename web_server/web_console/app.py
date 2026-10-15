@@ -303,8 +303,8 @@ def api_decision(job_id):
     # 승인된 job에 저장된 로봇 동작을 Jetson으로 전달
     if action == "approve":
         current = read_status(job_id)
-        # 동작이 기록되지 않은 job을 승인하면 예전에는 "incision"으로 기본 처리했다.
-        # 잘못된 동작이 로봇으로 갈 수 있어서, 동작이 없으면 명령을 만들지 않는다.
+        # 인식된 동작이 없는 job은 승인해도 로봇 명령을 만들지 않는다
+        # (잘못된 동작이 로봇으로 전달되는 것을 막기 위함).
         robot_action = current.get("robot_action")
         if not robot_action:
             return jsonify({

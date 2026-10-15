@@ -32,7 +32,7 @@ web_console/app.py 와는 파일로만 주고받는다.
 
 준비물: ffmpeg 명령(PATH), HuggingFace 로그인(게이트 모델), Whisper 모델(첫 실행 때 자동 다운로드 약 1.5GB)
 
-*** 실행되는 동안 GPU를 계속 점유한다. 팀원들과 GPU 사용 스케줄을 미리 맞출 것 ***
+모델(Whisper, Cosmos)은 시작할 때 한 번 로드해 GPU에 상주시킨다.
 """
 
 import json
@@ -79,7 +79,7 @@ WHISPER_DEVICE = os.environ.get("WHISPER_DEVICE", "")
 
 WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "medium")
 WHISPER_BEAM_SIZE = int(os.environ.get("WHISPER_BEAM_SIZE", "5"))
-# Whisper 모델 저장 위치. 비우면 whisper 기본값(~/.cache/whisper). 공유 서버에서는 프로젝트 경로로 지정 권장
+# Whisper 모델 저장 위치. 비우면 whisper 기본값(~/.cache/whisper)
 WHISPER_DOWNLOAD_ROOT = os.environ.get("WHISPER_DOWNLOAD_ROOT") or None
 
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
