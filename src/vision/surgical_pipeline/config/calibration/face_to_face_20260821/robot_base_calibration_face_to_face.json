@@ -1,0 +1,61 @@
+{
+  "created_at": "2026-08-21",
+  "layout": "face_to_face",
+  "world_frame": {
+    "origin": "P01",
+    "positive_x": "P01 -> P05",
+    "positive_y": "P01 -> P26",
+    "positive_z": "up",
+    "surface_z_mm": 0.0
+  },
+  "robots": {
+    "right": {
+      "i2c_bus": 8,
+      "i2c_address": "0x15",
+      "base_origin_world_mm": [
+        254.0,
+        86.0,
+        27.0
+      ],
+      "yaw_deg": 90.0,
+      "robot_plus_x_world": "World +Y",
+      "robot_plus_y_world": "World -X",
+      "robot_plus_z_world": "World +Z",
+      "direction_test_pose": [
+        90,
+        126,
+        90,
+        90,
+        89,
+        173
+      ],
+      "direction_test_local_axis": "Robot -Y",
+      "direction_test_observed_world_axis": "World +X",
+      "joint1_90_to_105": "CCW"
+    },
+    "left": {
+      "i2c_bus": 1,
+      "i2c_address": "0x15",
+      "base_origin_world_mm": [
+        -124.0,
+        86.0,
+        27.0
+      ],
+      "yaw_deg": -90.0,
+      "robot_plus_x_world": "World -Y",
+      "robot_plus_y_world": "World +X",
+      "robot_plus_z_world": "World +Z",
+      "direction_test_pose": [
+        90,
+        126,
+        90,
+        90,
+        89,
+        173
+      ],
+      "direction_test_local_axis": "Robot -Y",
+      "direction_test_observed_world_axis": "World -X",
+      "joint1_90_to_105": "CCW"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "created_at": "2026-08-21",
+  "source": "pixel_world_calibration_30.json",
+  "pixel_to_world_homography": [
+    [
+      -0.8482607645397254,
+      0.008093247409268632,
+      336.5764066231466
+    ],
+    [
+      0.004418032995605737,
+      0.8541650973263754,
+      -114.18414113832492
+    ],
+    [
+      1.7640142873849765e-05,
+      5.453551735252095e-05,
+      1.0
+    ]
+  ],
+  "mean_error_mm_recomputed": 0.7785698064542409,
+  "rmse_mm_recomputed": 0.9009238410610986,
+  "max_error_mm_recomputed": 1.9815418863093988,
+  "note": "Recomputed from the 30 pixel/world correspondences reported during 2026-08-21 calibration."
+}
