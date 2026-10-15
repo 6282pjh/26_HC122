@@ -172,7 +172,7 @@ stateDiagram-v2
 
 ## **💡5. 핵심 소스코드**
 
-### 5-1. 음성 명령 인식 및 로봇 동작 분류 ([`src/control_server/remote_realtime_listener.py`](src/control_server/remote_realtime_listener.py))
+### 5-1. 음성 명령 인식 및 로봇 동작 분류 ([`control_server/remote_realtime_listener.py`](control_server/remote_realtime_listener.py))
 수술 명령은 같은 발화에 항상 같은 결과가 나와야 하므로, Whisper의 디코딩을 결정론적으로 고정했습니다.
 `temperature=0.0`은 인식이 불확실할 때 온도를 올려 재시도하는 기본 동작을 막아 재현성을 확보하고, `beam_size=5`는 여러 후보 문장 중 가장 그럴듯한 것을 골라 정확도를 보완합니다.
 분류는 **키워드로 먼저** 판단해 지연과 변동을 없애고, 키워드가 맞지 않을 때만 LLM이 STT 오인식(예: "개복"→"복구")을 보정합니다. LLM은 절개·개복만 고를 수 있으며, 승인 화면 없이 바로 로봇으로 가는 "수술 완료"는 키워드로만 인정합니다.
@@ -211,7 +211,7 @@ def classify_command(groq_client, text: str):
     return None, None
 ```
 
-### 5-2. LoRA 월드 모델 행동 예측 영상 생성 ([`src/control_server/remote_realtime_listener.py`](src/control_server/remote_realtime_listener.py))
+### 5-2. LoRA 월드 모델 행동 예측 영상 생성 ([`control_server/remote_realtime_listener.py`](control_server/remote_realtime_listener.py))
 명령 시점에 촬영한 **정지 이미지 1장**을 조건으로 미래 영상을 생성합니다(Image2World). Video2World는 이미 움직이기 시작한 프레임을 요구하므로, "실행 전 예측 → 검토 → 승인" 구조에는 정지 장면에서 출발하는 Image2World가 맞습니다.
 - **학습과 같은 조건 유지** : LoRA는 학습 캡션 문장에 맞춰 학습되므로 프롬프트는 학습 캡션을 그대로 쓰고, 입력 장면도 학습 클립과 같은 방식(960:528 크롭 → bilinear 축소)으로 만듭니다. 파이프라인에 큰 이미지를 그대로 넘기면 내부에서 nearest 보간으로 줄어 학습 전처리와 달라집니다.
 - **텍스트 인코더 생략** : 캡션이 2개로 고정이라 임베딩을 미리 계산해 넘기고, 약 16GB인 텍스트 인코더를 로드하지 않습니다. 결과는 픽셀 단위로 같고 GPU 피크는 21.4GB에서 9.5GB로 줄었습니다.
@@ -253,7 +253,7 @@ apply_faststart(out_path)                            # iPad Safari 스트리밍 
 > LoRA 학습 규격 : 432×768 · 93프레임 · 16fps · rank/alpha 16/16 · lr 1e-4 · BF16 · 18클립 × 110 epoch
 > (해상도는 16의 배수여야 하며, 위반 시 OOM이 아닌 `RuntimeError: reshape`가 발생함을 실측으로 확인)
 
-### 5-3. 2단계 승인 ([`src/control_server/web_console/templates/job.html`](src/control_server/web_console/templates/job.html))
+### 5-3. 2단계 승인 ([`control_server/web_console/templates/job.html`](control_server/web_console/templates/job.html))
 장갑 착용이나 오접촉에 의한 우발적 실행을 막기 위해, 첫 탭은 "장전(armed)"만 하고 **3초 안에 한 번 더** 눌러야 승인 요청이 전송됩니다. 3초가 지나면 자동으로 해제됩니다.
 
 ```javascript
@@ -279,7 +279,7 @@ approveBtn.addEventListener('click', () => {
 });
 ```
 
-### 5-4. 승인 명령 게시 및 Jetson ACK 동기화 ([`src/control_server/web_console/app.py`](src/control_server/web_console/app.py))
+### 5-4. 승인 명령 게시 및 Jetson ACK 동기화 ([`control_server/web_console/app.py`](control_server/web_console/app.py))
 서버는 로봇을 직접 호출하지 않고, 승인된 명령을 `command.json`에 **게시**만 합니다. Jetson이 이를 주기적으로 조회해 가져가고, 실행 결과를 `job_id`와 함께 ACK로 돌려줍니다.
 - 승인마다 **새 고유 job_id**를 발급해, 같은 동작을 다시 승인해도 명령이 정상 갱신되도록 했습니다.
 - 임시 파일에 쓴 뒤 `os.replace`로 **원자적 치환**하여, Jetson이 반쯤 쓰인 파일을 읽는 상황을 배제했습니다.
@@ -323,7 +323,7 @@ def api_robot_ack():
     # ... 원래 웹 job 상태에도 robot_status 반영 후 원자적 저장
 ```
 
-### 5-5. 촬영 요청 브리지의 경쟁 상태 처리 ([`src/control_server/capture_bridge/capture_bridge.py`](src/control_server/capture_bridge/capture_bridge.py))
+### 5-5. 촬영 요청 브리지의 경쟁 상태 처리 ([`control_server/capture_bridge/capture_bridge.py`](control_server/capture_bridge/capture_bridge.py))
 녹음 시작·종료에 카메라 START/STOP이 자동 연동됩니다. 실기 테스트에서 "녹음은 끝났는데 녹화가 계속되는" 버그가 있었는데, 첫 프레임 업로드 완료 처리가 그 사이에 들어온 **STOP 요청을 덮어쓰는** 경쟁 상태(race condition)가 원인이었습니다.
 현재 명령이 실제로 START 처리 중일 때만 상태를 갱신하도록 수정해 해결했습니다.
 
@@ -365,29 +365,33 @@ def save_captured_image(job_id, file_storage):
 ├── images/                     # README 이미지
 │   ├── diagrams/               # 서비스 흐름도, S/W·H/W 구성도, 엔티티 관계도
 │   └── team/                   # 팀원 사진
-├── src/
-│   ├── control_server/         # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
-│   │   ├── remote_realtime_listener.py
-│   │   ├── web_console/        # app.py, 촬영 라우트, iPad 화면(templates, static)
-│   │   ├── capture_bridge/
-│   │   ├── tools/make_embeds.py
-│   │   └── tests/smoke_test.py
-│   ├── camera_client/          # 카메라 노트북 촬영 클라이언트 (Orbbec Gemini E)
-│   ├── world_model/            # Cosmos-Predict2.5-2B LoRA 학습·추론
-│   │   ├── tools/              # 촬영 → 클립 제작 → 규격 검사 (노트북)
-│   │   ├── server_kit/         # 환경 설치, 캐시, 학습, 추론 (GPU 서버)
-│   │   ├── scripts/            # 평가 일괄 실행, 요약 시트
-│   │   └── results/            # 학습 설정 기록
-│   ├── rl_policy/              # Isaac Lab PPO 절개 정책
-│   │   ├── INTERFACE.md        # 정책 입출력·배포 계약 (vision·jetson_control이 따름)
-│   │   └── deploy/             # 실제 로봇용 정책 실행부
-│   ├── vision/                 # 절개선 검출, Homography 좌표 보정 → 정책 입력
-│   └── jetson_control/         # Jetson 양팔 DOFBOT 제어, 상태 시퀀스, 실행 모드(policy / replay)
+├── control_server/             # 서버: Flask 웹 승인 콘솔, STT·명령 분류·Cosmos LoRA 워커, 촬영 브리지
+│   ├── remote_realtime_listener.py
+│   ├── web_console/            # app.py, 촬영 라우트, iPad 화면(templates, static)
+│   ├── capture_bridge/
+│   ├── tools/make_embeds.py
+│   └── tests/smoke_test.py
+├── camera_client/              # 카메라 노트북 촬영 클라이언트 (Orbbec Gemini E)
+├── world_model/                # Cosmos-Predict2.5-2B LoRA 학습·추론
+│   ├── tools/                  # 촬영 → 클립 제작 → 규격 검사 (노트북)
+│   ├── server_kit/             # 환경 설치, 캐시, 학습, 추론 (GPU 서버)
+│   ├── scripts/                # 평가 일괄 실행, 요약 시트
+│   ├── results/                # 학습 설정 기록
+│   └── dataset_c920/           # C920 원격조작 에피소드 100개의 관절값·메타데이터, 샘플 프레임
+├── rl_policy/                  # Isaac Lab PPO 절개·개복 정책
+│   ├── task/dofbot/            # 절개(v3)·개복 환경과 skrl PPO 설정
+│   ├── scripts/                # 학습, 평가, 렌더링, 교시 동작 재생
+│   ├── motions/                # 개복 교시 동작(JSON)
+│   ├── weights/                # 학습한 정책 가중치(npz)
+│   └── results/                # 시뮬레이션 평가 결과
+├── vision/                     # C920 절개선 검출(HSV), 30점 Homography 좌표 보정
+│   ├── surgical_pipeline/      # 검출·녹화·캘리브레이션 코드와 보정 데이터
+│   └── results/                # 보정 수치 재계산·검증 기록
 ├── requirements.txt
 └── README.md
 ```
 
-> 모델 가중치, 학습 영상, 체크포인트, 녹음 파일은 용량·라이선스·개인정보 문제로 저장소에 포함하지 않습니다. 각 폴더의 README에 실행 방법과 실측 결과를 정리했습니다.
+> 월드 모델 가중치, 학습 영상, 체크포인트, 녹음 파일은 용량·라이선스·개인정보 문제로 저장소에 포함하지 않습니다(강화학습 정책만 경량 npz로 포함). 각 폴더의 README에 실행 방법과 실측 결과를 정리했습니다.
 
 ---
 
