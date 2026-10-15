@@ -5,7 +5,7 @@
 #   메모리 측정(G0):  RUN=g0_528 NCLIPS=4 EPOCHS=1 bash server_kit/train_4090.sh
 #   E1 파일럿:        RUN=e1_r16 EPOCHS=110 CKPT_EPOCHS=28 bash server_kit/train_4090.sh
 #   GPU1에서 동시에:  GPU=1 RUN=e1_r32 RANK=32 EPOCHS=110 CKPT_EPOCHS=28 bash server_kit/train_4090.sh
-#   두 GPU로 한 실험(DDP, 미검증): GPU=0,1 RUN=e1_ddp EPOCHS=110 bash server_kit/train_4090.sh
+#   두 GPU로 한 실험(DDP): GPU=0,1 RUN=e1_ddp EPOCHS=110 bash server_kit/train_4090.sh
 #
 # 변수(기본값):
 #   RUN=필수 DATA=$PROJECT_ROOT/data/dataset/train H=528 W=960 RANK=16 LR=1e-4

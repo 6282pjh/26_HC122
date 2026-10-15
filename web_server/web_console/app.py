@@ -2,15 +2,15 @@
 """
 web_console/app.py — 낭만닥터 수술 어시스턴트 승인 콘솔 (Flask 버전)
 
-기존 파일 규약을 그대로 사용한다. remote_realtime_listener.py의 핵심 로직
-(Whisper / Groq / Cosmos 호출부)은 전혀 건드리지 않는다.
+remote_realtime_listener.py(워커)와는 아래 파일로만 주고받는다.
+(Whisper / Groq / Cosmos 호출은 워커가 담당한다.)
 
-  inputs/incoming/{job_id}.wav   -> worker가 감지해서 처리 (기존 그대로)
-  outputs/{job_id}_result.mp4    -> worker가 생성 완료 시 저장 (기존 그대로)
-  outputs/{job_id}.json          -> [신규] worker가 단계별 진행 상황을 기록.
-                                     아직 worker 패치를 안 붙였다면, 이 파일이
-                                     없어도 mp4 존재 여부만으로 최소 동작한다
-                                     (STT/프롬프트 실시간 표시만 못 함).
+  inputs/incoming/{job_id}.wav   -> worker가 감지해서 처리
+  outputs/{job_id}_result.mp4    -> worker가 생성 완료 시 저장
+  outputs/{job_id}.json          -> worker가 단계별 진행 상황을 기록.
+                                     웹 콘솔은 이 파일로 단계·STT 결과·프롬프트를
+                                     실시간 표시하고, 파일이 아직 없으면
+                                     mp4 존재 여부로 완료를 판단한다.
 
 실행:
     cd web_console
@@ -128,7 +128,7 @@ def read_status(job_id: str) -> dict:
         except Exception:
             pass
 
-    # worker 패치 전이거나, 상태 파일이 아직 안 생긴 초기 구간의 폴백
+    # 상태 파일이 아직 생기지 않은 초기 구간의 폴백
     if result_path(job_id).exists():
         return {"job_id": job_id, "stage": "review", "stt_text": "", "prompt_text": ""}
     if (INCOMING_DIR / f"{job_id}.wav").exists():

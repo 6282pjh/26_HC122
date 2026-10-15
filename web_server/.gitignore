@@ -12,7 +12,7 @@ robot_bridge/*
 outputs/*
 !**/.gitkeep
 
-# 대용량 미디어 (데모 영상은 로컬에만 둠)
+# 대용량 미디어
 *.mp4
 *.wav
 *.zip

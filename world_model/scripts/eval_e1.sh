@@ -6,8 +6,7 @@ cd "$PROJECT_ROOT"
 L="$1"; R="${R:-r16}"; GPU="${GPU:-1}"; BASE="${BASE:-1}"
 T="$PROJECT_ROOT/data/dataset/test"; HW="--height 432 --width 768"
 export CUDA_VISIBLE_DEVICES="$GPU"   # 스크립트 안에서는 cuda:0으로 보임
-# 연구실 실행 당시 infer_lora.py에는 CUDA 초기화 누락 버그가 있어 torch.cuda.init()을 먼저 부르는 래퍼로 실행했다.
-# 지금 저장소의 infer_lora.py는 고쳐져 있어 래퍼 없이도 돌지만, 실행 기록과 같게 래퍼를 남겨 둔다(있어도 해 없음).
+# CUDA를 먼저 초기화(torch.cuda.init)한 뒤 infer_lora.py를 실행하는 래퍼.
 INFER='import sys, runpy, torch; torch.cuda.init(); sys.argv = sys.argv[1:]; runpy.run_path(sys.argv[0], run_name="__main__")'
 run() { echo "=== $(date -u +%T) $*"; python -c "$INFER" server_kit/infer_lora.py --data_dir "$T" $HW --seeds 0 1 "$@" || echo "[실패] $*"; }
 [ "$BASE" = 1 ] && run --out_dir eval/base_432 --tag base

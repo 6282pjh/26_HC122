@@ -230,11 +230,11 @@ def to_model_frame(img: Image.Image) -> Image.Image:
     1) 학습 클립(make_clips.py)과 같은 방식: 가운데 기준 960:528 크롭 → 960×528 축소
     2) 학습 스크립트(VideoDataset, PIL 입력)와 같은 방식: PIL bilinear로 WIDTH×HEIGHT(768×432)
 
-    2)를 여기서 하는 이유 (연구실 서버 확인, 2026-10-11 ANSWERS.md Q6-③):
+    2)를 여기서 하는 이유:
     파이프라인에 960×528을 그대로 넘기면 내부에서 텐서로 바꾼 뒤
     F.interpolate(기본 nearest)로 줄여서 학습 때(bilinear)와 첫 프레임이 달라진다
     (평균 차이 약 2.7/255). 미리 bilinear로 맞춰 넘기면 학습 경로와 차이 0.
-    ※ 연구실 평가 영상 53개는 nearest 경로로 만들었다. 이 방식의 생성 품질은 아직 직접 비교하지 않았다."""
+    학습과 추론의 입력 전처리를 이 함수 하나로 맞춘다."""
     img = img.convert("RGB")
     target = CLIP_W / CLIP_H
     w, h = img.size

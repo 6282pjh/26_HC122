@@ -231,8 +231,8 @@ stateDiagram-v2
 ├── rl_policy/                  # Isaac Lab PPO 절개·개복 정책
 │   ├── dofbot/tasks/           # 절개(v3)·개복 환경, 환경 등록, skrl PPO 설정(agents/)
 │   ├── config/, setup.py       # Isaac Lab 확장 설치 정보 (pip install -e rl_policy)
-│   ├── scripts/                # 학습, 평가, 렌더링, 교시 동작 재생
-│   ├── motions/                # 개복 교시 동작(JSON)
+│   ├── scripts/                # 학습, 평가, 렌더링
+│   ├── motions/                # 개복 기준 동작(JSON)
 │   ├── weights/                # 학습한 정책 가중치(npz)
 │   └── results/                # 시뮬레이션 평가 결과
 ├── vision/                     # C920 절개선 검출(HSV), 30점 Homography 좌표 보정
