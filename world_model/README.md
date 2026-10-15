@@ -1,91 +1,188 @@
-# world_model — Cosmos-Predict2.5-2B LoRA 학습 · 추론
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div align="center">
 
-수술 세트장에서 직접 촬영한 로봇 동작 영상으로 NVIDIA Cosmos-Predict2.5-2B(Image2World)에 LoRA를 학습해, **현재 장면 1장 + 동작 캡션 → 93프레임(약 5.8초) 미래 영상**을 생성합니다. 학습한 LoRA는 [`../web_server`](../web_server)의 워커가 불러 씁니다.
+<img alt="NVIDIA Cosmos" src="assets/brand/cosmos-logo.png" width="274">
 
-## 흐름
+# NVIDIA Cosmos
 
-```
-[노트북] tools/          촬영(Gemini E) → 동작 구간 검출 → 93프레임 클립 + 캡션 + 첫 프레임 → 규격 검사
-            │  dataset/train (18클립), dataset/test (2클립)
-            ▼
-[GPU 서버] server_kit/   cache_latents.py  텍스트 인코더·VAE를 한 번만 돌려 latent·캡션 임베딩을 디스크에 저장
-                         train_lora_4090.py GPU에 DiT만 올려 LoRA 학습 (train_4090.sh가 둘을 순서대로 실행)
-                         infer_lora.py      test 첫 프레임 + 캡션 → 평가 영상
-            ▼
-           scripts/      평가 일괄 실행(eval_e1.sh), 시드 10개 생성(gen_x10.sh), 요약 시트(contact_sheet.py)
-```
+### World Foundation Models for Physical AI
 
-## 폴더
+**One model family that sees, reasons, simulates, and acts.**
 
-| 경로 | 내용 |
-|---|---|
-| `captions.json` | 동작별 캡션 2문장. 학습·추론에서 **글자까지 같은 문장**을 써야 함 |
-| `tools/` | 노트북(Windows)용 데이터 도구: `record_take.py`(ffmpeg 녹화), `inspect_take.py`(움직임 구간 검출), `make_clips.py`(클립 제작), `check_clips.py`(규격 검사), `selftest.py`(합성 영상으로 전체 검증) |
-| `server_kit/` | GPU 서버용: 환경 설치(`setup_env.sh`, `constraints_hanium.txt`), 점검(`env_check.sh`, `preflight_server.sh`), 모델 다운로드, 캐시·학습·추론 |
-| `scripts/` | 평가·비교용 실행 스크립트 |
-| `results/` | 실제 학습 때 런처가 남긴 설정 기록 (`run_config_e1_r16.txt`, `run_config_e1_r32.txt`) |
+[![Models](https://img.shields.io/badge/-Cosmos%203%20models-ffd21e?logo=huggingface&logoColor=white&labelColor=555)](https://huggingface.co/collections/nvidia/cosmos3)
+[![Paper](https://img.shields.io/badge/-Technical%20Report-76b900?logo=arxiv&logoColor=white&labelColor=555)](https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf)
+[![Website](assets/brand/badge-website.svg)](https://research.nvidia.com/labs/cosmos-lab/cosmos3/)
+[![Discussions](https://img.shields.io/badge/-Discussions-181717?logo=github&logoColor=white&labelColor=555)](https://github.com/NVIDIA/cosmos/discussions)
 
-## 데이터 규격
+[**Try it in your browser**](https://build.nvidia.com/nvidia/cosmos3-nano-reasoner) · [**Quickstart**](#generate-your-first-video) · [**Find your path**](#find-your-path) · [**Model Family**](#models)
 
-- 촬영: Orbbec Gemini E 1920×1080 30fps → 동작 구간만 잘라 **960×528, 16fps, 정확히 93프레임** 클립
-- 동작 구간이 5.75초보다 길면 추출 fps를 `92 ÷ 구간 길이`로 낮춰 93프레임에 맞춤 (절개 약 4.4배, 개복 약 2.3배 빠르게)
-- `dataset/<train|test>/videos/*.mp4` + `metas/*.txt`(캡션) + `first_frames/*.png`, 파일명 앞 3글자(`inc`/`lap`)가 동작
-- 2차 데이터: 1개 위치(P1)에서 10테이크 → train 18클립(절개 9 + 개복 9), test 2클립(t10)
-- 데이터·영상·가중치는 저장소에 포함하지 않습니다.
+</div>
 
-## 24GB GPU에서 학습하는 방법
+<!-- ============================================================
+     DEMO GRID — the model sells itself.
+     Asset sources and re-cut specs: assets/ASSET_SPECS.md in the private repo (nvidia-cosmos/cosmos-private).
+     ============================================================ -->
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="assets/demos/physics_newton_cradle.gif" alt="Physics-aware generation: Newton's cradle">
+      <sub><a href="cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Physics-aware generation</b></a><br>A Newton's cradle in motion: momentum transfer rendered with physical fidelity</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/demos/transfer_worldscenario.gif" alt="World-scenario transfer: control layout to photoreal driving video">
+      <sub><a href="cookbooks/cosmos3/generator/transfer/run_video_transfer_with_vllm_omni.ipynb"><b>Transfer</b></a><br>World-scenario control layout → photoreal driving video</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/demos/policy_screwdriver.gif" alt="Robot policy executing a manipulation task">
+      <sub><a href="cookbooks/cosmos3/generator/action/run_policy_with_vllm_omni.ipynb"><b>Action policy</b></a><br>Policy run: "put the screwdriver and the glove in the purple container"</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="assets/demos/driving_sim_falling_rocks.gif" alt="Driving simulation for autonomous vehicles">
+      <sub><a href="cookbooks/cosmos3/generator/audiovisual/run_with_vllm_omni.ipynb"><b>Simulation</b></a><br>Generate synthetic data and create simulation for autonomous driving</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/demos/fd_egocentric_repair_poses.gif" alt="Forward dynamics egocentric rollout">
+      <sub><a href="cookbooks/cosmos3/generator/action/run_fd_with_vllm_omni.ipynb"><b>Action-conditioned World Model</b></a><br>Forward dynamics: egocentric rollout from input camera + hand pose</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="assets/demos/reasoner_driving_hazard.gif" alt="World Reasoner: dashcam hazard anticipation">
+      <sub><a href="cookbooks/cosmos3/reasoner/run_with_vllm.ipynb"><b>World reasoning</b></a><br>Reason in complex real-world scenarios: a rolling ball means a child or pet may follow</sub>
+    </td>
+  </tr>
+</table>
 
-원본 학습 스크립트(포크 `examples/cosmos/train_cosmos_predict25_lora.py`)는 매 step마다 텍스트 인코더(Qwen2.5-VL-7B, 약 16GB), VAE, DiT를 모두 GPU에 올립니다. 1차(A6000 48GB, 528×960)에서 피크가 41.5GB였습니다.
+---
 
-캡션이 동작별로 고정된 2문장이고 VAE 인코딩이 결정적(평균값 사용)이라, 두 결과를 **한 번만 계산해 저장**하고 학습 중에는 DiT만 GPU에 올립니다. 작은 테스트 모델로 원본 스크립트와 나란히 돌렸을 때 step loss 5개가 일치했고 최종 LoRA 가중치 차이는 0.0이었습니다. 원본에서 바꾼 곳은 `train_lora_4090.py`에 `# [4090]` 주석으로 표시했습니다.
+## What's new
 
-## 실행 (GPU 서버)
+- **[Jul 2026]** [Cosmos3-Edge](https://huggingface.co/nvidia/Cosmos3-Edge) released — the 4B tier for on-device, real-time deployment (Jetson AGX Orin / Thor / RTX Pro 6000).
+- **[May 2026]** Cosmos 3 released: [HF collection](https://huggingface.co/collections/nvidia/cosmos3) · [Technical Report](https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf).
+
+## What is Cosmos?
+
+NVIDIA Cosmos is an open platform for building physical AI applications — robots, autonomous vehicles, and smart infrastructure — providing better data, better environment, better starting point, and better tooling for physical AI developers. **Cosmos 3**, the current model family, is a suite of omnimodal world models built on a unified Mixture-of-Transformers architecture ([technical report](https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf)).
+
+One model, two surfaces:
+
+|  | Inputs | Outputs | Use it for |
+|---|---|---|---|
+| **Reasoner** | text, vision | text | world understanding, grounding, task planning, embodied reasoning |
+| **Generator** | text, vision, sound, action | vision, sound, action | world simulation, future prediction, synthetic data, policy learning |
+
+This repository is the home of the models: everything for exploring, running, and evaluating Cosmos. For model training (SFT, LoRA, RL, distillation etc.), go to [Cosmos Framework](https://github.com/NVIDIA/cosmos-framework). Use [Cosmos Curator](https://github.com/NVIDIA/cosmos-curator) for data curation, and [Cosmos Evaluator](https://github.com/NVIDIA/cosmos-evaluator) for model output evaluation.
+
+## Find your path
+
+<table>
+  <tr><th align="left" width="46%">I want to…</th><th align="left" width="42%">Go to</th><th align="left">Time</th></tr>
+  <tr><td><b>See it work</b> — zero install</td><td><a href="https://build.nvidia.com/nvidia/cosmos3-nano">Video generation</a>, <a href="https://build.nvidia.com/nvidia/cosmos3-nano-reasoner">visual reasoning</a></td><td>1 min</td></tr>
+  <tr><td><b>Generate my first video</b></td><td><a href="#generate-your-first-video">Quickstart ↓</a></td><td>10 min</td></tr>
+  <tr><td><b>Reason over images &amp; video</b></td><td><a href="cookbooks/cosmos3/reasoner/run_with_vllm.ipynb">Reasoner notebook</a></td><td>10 min</td></tr>
+  <tr><td><b>Serve an OpenAI-compatible API</b></td><td><a href="cookbooks/cosmos3/README.md">Serving setup guide</a> — vLLM, vLLM-Omni, or NIM</td><td>30 min</td></tr>
+  <tr><td><b>Post-train on my own data</b> — SFT, distillation, RL</td><td><a href="https://github.com/NVIDIA/cosmos-framework">Cosmos Framework</a>, then <a href="evaluation/">evaluate here</a></td><td>hours</td></tr>
+  <tr><td><b>Explore runnable notebooks</b></td><td><a href="cookbooks/cosmos3/README.md">Cookbooks</a></td><td>browse</td></tr>
+  <tr><td><b>Evaluate a model</b></td><td><a href="evaluation/">Evaluation suites</a> — PAIBench, Physics-IQ, VLMEvalKit</td><td>hours</td></tr>
+  <tr><td><b>Check latency &amp; throughput</b></td><td><a href="inference_benchmarks.md">Benchmarks</a></td><td>browse</td></tr>
+</table>
+
+## Generate your first video
+
+Before running the code, request access to [nvidia/Cosmos-1.0-Guardrail](https://huggingface.co/nvidia/Cosmos-1.0-Guardrail) and accept its access conditions. Once access is granted, log in below with a Hugging Face read token from the same account. Logging in alone does not grant access.
 
 ```bash
-bash server_kit/preflight_server.sh          # 디스크·RAM·GPU 점검
-bash server_kit/setup_env.sh                 # conda env + torch 2.6.0+cu124 + diffusers 포크(커밋 고정)
-conda activate <env 경로>
-bash server_kit/env_check.sh
-huggingface-cli login                        # nvidia/Cosmos-Predict2.5-2B 라이선스 동의 필요
-python server_kit/download_model.py          # 약 21GB
-
-# 학습 (H, W는 16의 배수. 528×960은 24GB에서 여유가 약 1GB라 432×768 권장)
-H=432 W=768 RUN=e1_r16 RANK=16 EPOCHS=110 CKPT_EPOCHS=28 GPU=0 bash server_kit/train_4090.sh
-
-# 평가 영상
-python server_kit/infer_lora.py --data_dir $PROJECT_ROOT/data/dataset/test --height 432 --width 768 \
-    --out_dir eval/e1_r16 --lora_dir $PROJECT_ROOT/lora_checkpoints/<날짜>_e1_r16 --seeds 0 1
+uv venv --python 3.13 --seed --managed-python && source .venv/bin/activate
+uv pip install --torch-backend=auto \
+  "diffusers @ git+https://github.com/huggingface/diffusers.git" \
+  accelerate av cosmos_guardrail huggingface_hub imageio imageio-ffmpeg \
+  torch torchvision transformers
+uvx hf@latest auth login   # Authenticate for the gated Guardrail repository
 ```
 
-`server_kit/project.env`의 `HDD_BASE`만 바꾸면 경로가 모두 따라갑니다. 핀 버전은 `constraints_hanium.txt`이며 torch 2.6.0, transformers 4.52.4는 바뀌면 안 됩니다.
+```python
+import torch
+from diffusers import Cosmos3OmniPipeline
+from diffusers.utils import export_to_video
 
-## 2차 학습 결과 (연구실 RTX 4090 24GB ×2, 2026-10-05 ~ 10-11)
+pipe = Cosmos3OmniPipeline.from_pretrained(
+    "nvidia/Cosmos3-Nano", torch_dtype=torch.bfloat16, device_map="cuda"
+)
+video = pipe(prompt="A mobile robot navigates a warehouse aisle and stops at a shelf.").video
+export_to_video(video, "first_video.mp4", fps=24)
+```
 
-**해상도 결정 (rank 16, 4클립 × 2 epoch)**
+First run downloads the 16B checkpoint; diffusion steps are compute-heavy, so long step times are normal. Full options, image/sound modes, and every other backend: [audiovisual cookbooks](cookbooks/cosmos3/generator/audiovisual/) · setup issues: [environment setup guide](cookbooks/cosmos3/README.md).
 
-| 해상도 | 학습 메모리 (PyTorch 할당 피크) | step당 시간 | 판단 |
+
+## Models
+
+**Cosmos 3 ships as three base models** — every deployment tier, one omnimodal architecture:
+
+| Base model | Size | Runs on | Best for |
 |---|---|---|---|
-| 432×768 | 16.26GB | 약 14초 | 채택 |
-| 528×960 | 22.57GB | 26.0초 | 여유 약 1GB, 공유 GPU에서 OOM 발생 |
+| [Cosmos3-Super](https://huggingface.co/nvidia/Cosmos3-Super) | 64B | H200 / B200 / GB200 | Highest quality; synthetic data generation; teacher for distillation |
+| [Cosmos3-Nano](https://huggingface.co/nvidia/Cosmos3-Nano) | 16B | RTX Pro 6000 / H100 / B200 | Balanced speed and quality; strong base model to post-train |
+| [Cosmos3-Edge](https://huggingface.co/nvidia/Cosmos3-Edge) | 4B | Jetson AGX Orin / Thor / RTX Pro 6000 | Edge deployment; real-time robot policy and visual reasoning |
 
-**본 학습 (432×768, 18클립 × 110 epoch = 1,980 step, lr 1e-4, warmup 99)**
+**Example checkpoints** in the [cosmos3-examples](https://huggingface.co/collections/nvidia/cosmos3-examples) collection are post-trained variants of the base models. They demonstrate what [post-training with Cosmos Framework](https://github.com/NVIDIA/cosmos-framework) can specialize Cosmos for — they're capability demos, not part of the product line:
 
-| | 시간 | 마지막 10줄 평균 loss | LoRA 크기 |
-|---|---|---|---|
-| rank 16 | 7시간 32분 | 0.0349 | 92MB |
-| rank 32 | 7시간 56분 | 0.0239 | 184MB |
+| Example checkpoint | Base | Demonstrates |
+|---|---|---|
+| [Cosmos3-Super-Text2Image](https://huggingface.co/nvidia/Cosmos3-Super-Text2Image) | Super | Elite quality text-to-image |
+| [Cosmos3-Super-Text2Image-4Step](https://huggingface.co/nvidia/Cosmos3-Super-Text2Image-4Step) | Super | Elite quality text-to-image, 17-25x faster |
+| [Cosmos3-Super-Image2Video](https://huggingface.co/nvidia/Cosmos3-Super-Image2Video) | Super | Elite quality image-to-video |
+| [Cosmos3-Super-Image2Video-4Step](https://huggingface.co/nvidia/Cosmos3-Super-Image2Video-4Step) | Super | Elite quality image-to-video, 17-25x faster |
+| [Cosmos3-Nano-Policy-DROID](https://huggingface.co/nvidia/Cosmos3-Nano-Policy-DROID) | Nano | Open SOTA DROID robot policy, runs on RTX Pro 6000 |
+| [Cosmos3-Edge-Policy-DROID](https://huggingface.co/nvidia/Cosmos3-Edge-Policy-DROID) | Edge | DROID robot policy at edge-deployable scale |
 
-**평가 (test 첫 프레임, 동작당 시드 10개씩)**
+Full I/O specs, generation settings, and supported action embodiments: [model reference](docs/reference/models.md).
 
-- base 모델은 4개 모두 흰 로봇·사람 손 같은 엉뚱한 물체가 들어와 장면이 무너졌고, LoRA는 rank 16·32로 동작당 10개씩 만든 40개 영상 모두에서 로봇팔 2대·수술 시트·인공 피부 패드가 유지됐습니다.
-- 첫 프레임만으로는 절개·개복을 구분할 수 없는데(첫 프레임 평균 절대차: 같은 동작끼리 7.7~8.1, 다른 동작 사이 8.3), 캡션만 바꿔 넣으면 생성 동작이 캡션을 따라 바뀌는 모습이 보였습니다.
-- 개복은 rank 32가 원본 타이밍에 더 가깝고, 절개는 rank 16이 원위치 복귀까지 나오는 경우가 있었습니다(10개 중 2개). 서비스·시연에는 rank 16을 사용했습니다.
-- 위 관찰은 영상별 정지 프레임 6~7장을 기준으로 한 것입니다.
+## Repository map
 
-**추론 (432×768, 30 step, guidance 7.0)**: 영상당 194~226초. nvidia-smi 기준 GPU 피크 약 21.4GB이며, 미리 계산한 캡션 임베딩을 쓰면 9.5GB로 줄고 결과는 픽셀 단위로 같습니다(`web_server/tools/make_embeds.py`).
+```text
+cosmos/
+├── cookbooks/          # runnable notebooks for every capability (start here to explore)
+│   └── cosmos3/        # generator (audiovisual · action · transfer) · reasoner + prompt guide
+├── evaluation/         # quality benchmark suites: PAIBench, Physics-IQ, RBench, UniGenBench, VLMEvalKit
+├── docs/
+│   └── reference/      # lookup: model reference
+├── assets/             # brand + demo media
+└── README.md           # you are here
+```
 
-## 알려진 한계
+Training, optimization, and deployment tooling lives in [Cosmos Framework](https://github.com/NVIDIA/cosmos-framework).
 
-- 학습 데이터가 한 위치(P1)에서만 촬영되었습니다. 새로 촬영한 장면에서의 일반화는 아직 검증하지 않았습니다.
-- `train_lora_4090.py`에는 학습 재개 옵션이 없습니다. 같은 날 같은 `RUN` 이름으로 다시 실행하면 출력 폴더를 재사용하므로 이름을 바꿔야 합니다.
-- 두 GPU로 한 실험을 돌리는 DDP 경로(`GPU=0,1`)는 검증하지 않았습니다.
+## Platform
+
+| Project | Purpose |
+|---|---|
+| **Cosmos** | This repo |
+| [Cosmos Framework](https://github.com/NVIDIA/cosmos-framework) | Train, optimize, and deploy physical AI models — SFT · LoRA · distillation · RL post-training, for Cosmos and beyond |
+| [Cosmos Curator](https://github.com/NVIDIA/cosmos-curator) | Distributed data curation: processing, annotation, filtering, dedup |
+| [Cosmos Evaluator](https://github.com/NVIDIA/cosmos-evaluator) | Automated evaluation system for world generation & reasoning outputs |
+
+Cosmos 3 runs on Diffusers, Transformers, vLLM, vLLM-Omni, SGLang, TensorRT-LLM, and NIM — pick a backend in the [environment setup guide](cookbooks/cosmos3/README.md).
+
+## Community & contributing
+
+Questions and ideas → [Discussions](https://github.com/NVIDIA/cosmos/discussions). Bugs → [Issues](https://github.com/NVIDIA/cosmos/issues). Code → [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Limitations & safety
+
+Cosmos 3 can produce artifacts in long, high-resolution, or physically complex outputs (temporal inconsistency, object morphing, implausible dynamics). Safety-critical applications need additional validation and system-level safety analysis. Generation ships with [guardrails](cookbooks/cosmos3/README.md) on by default.
+
+## Citation & license
+
+```bibtex
+@techreport{nvidia2026cosmos3,
+  title  = {Cosmos 3: Omnimodal World Models for physical AI},
+  author = {{NVIDIA Cosmos Team}},
+  year   = {2026},
+  url    = {https://research.nvidia.com/labs/cosmos-lab/cosmos3/technical-report.pdf}
+}
+```
+
+Source code and models are released under [OpenMDW-1.1](https://openmdw.ai/license/1-1/). Custom licensing: <cosmos-license@nvidia.com>. This project may download third-party open source software; review those licenses before use.
