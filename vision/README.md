@@ -20,14 +20,15 @@
 | `results/verify_calibration.py` | 카메라·로봇 없이 실행하는 문법·수치·좌표 변환·CLI·파일 검사 |
 | `results/calib_20261015.json` | 재계산 수치, 30점별 잔차, 검사 항목 |
 | `results/verification_20261015.md` | 검사 조건과 검증하지 않은 범위 |
+| `requirements.txt` | 검출·좌표 변환에 필요한 패키지 |
 
 ## 설치와 실행 위치
 
 모든 명령은 `surgical_pipeline/`에서 실행합니다. 코드가 이 폴더를 기준으로 경로와 import(`common.coordinates`)를 잡기 때문입니다. Python 3, NumPy, GUI 기능이 있는 OpenCV가 필요합니다.
 
 ```bash
+python3 -m pip install -r vision/requirements.txt
 cd vision/surgical_pipeline
-python3 -m pip install numpy opencv-python
 ```
 
 장비에 이미 설치된 OpenCV가 있다면 덮어 설치하기 전에 환경을 확인하세요. `webcam_record.py`의 `CAP_V4L2`는 Linux용입니다. yaw 측정에만 `Arm_Lib`, `smbus`, I2C 접근 권한이 추가로 필요하며, 좌표 변환과 파일 검사에는 필요 없습니다.

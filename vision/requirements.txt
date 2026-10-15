@@ -1,0 +1,5 @@
+# 검출·좌표 변환 — pip install -r requirements.txt (vision/ 에서 실행)
+# GUI 기능이 있는 OpenCV가 필요하다. 장비에 OpenCV가 이미 있으면 덮어 설치하기 전에 확인한다.
+# yaw 측정 스크립트만 장비의 Arm_Lib, smbus가 추가로 필요하다 (pip 대상 아님).
+numpy
+opencv-python
