@@ -18,7 +18,7 @@ capture_client ─ ACK(POST /capture/ack) ─▶ 워밍업 5프레임 버림 →
 ## 실행
 
 ```bash
-pip install opencv-python requests
+pip install -r requirements.txt
 python capture_client.py find      # 카메라 번호 확인 (Windows DSHOW)
 python capture_client.py
 ```
