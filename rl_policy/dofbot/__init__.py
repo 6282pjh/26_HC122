@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """
-Python module serving as a project/extension template.
+DOFBOT 절개(v3)·개복 Isaac Lab 태스크 패키지.
 """
 
 # Register Gym environments.
