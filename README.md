@@ -99,8 +99,8 @@
 | **멘티1** | **멘티2** | **멘티3** | **멘티4** | **멘티5** | **멘토** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | <img width="110" src="images/team/mentee1.png"> | <img width="110" src="images/team/mentee2.png"> | <img width="110" src="images/team/mentee3.png"> | <img width="110" src="images/team/mentee4.png"> | <img width="110" src="images/team/mentee5.png"> | <img width="110" src="images/team/mentor.png"> |
-| • 통합환경 구축 <br> • 서버 연동 <br> • Jetson 연동 | • 월드모델 구성 <br> • LoRA 학습 | • 강화 학습 <br> • PPO 절개정책 | • 하드웨어 제작 <br> • 양팔 로봇 <br> • 도구 어댑터 | • 비전 인식 <br> • 절개선 검출 <br> • 좌표 보정 | • 프로젝트 멘토 <br> • 기술 자문 |
-| ![Infra](https://img.shields.io/badge/Infra-Jetson-blue) | ![WM](https://img.shields.io/badge/World-Model-76B900) | ![RL](https://img.shields.io/badge/RL-PPO-orange) | ![HW](https://img.shields.io/badge/HW-DOFBOT-brown) | ![Vision](https://img.shields.io/badge/Vision-Calib-red) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
+| • 통합환경 구축 <br> • 강화 학습 <br> • PPO 절개정책 | • 월드모델 구성 <br> • LoRA 학습 | • 비전 인식 <br> • 절개선 검출 <br> • 좌표 보정 | • 하드웨어 제작 <br> • 양팔 로봇 <br> • 도구 어댑터 | • 웹 서버 연동 <br> • Jetson 연동 | • 프로젝트 멘토 <br> • 기술 자문 |
+| ![RL](https://img.shields.io/badge/RL-PPO-orange) | ![WM](https://img.shields.io/badge/World-Model-76B900) | ![Vision](https://img.shields.io/badge/Vision-Calib-red) | ![HW](https://img.shields.io/badge/HW-DOFBOT-brown) | ![Server](https://img.shields.io/badge/Server-Jetson-blue) | ![Mentor](https://img.shields.io/badge/Mentor-Advisor-lightgrey) |
 
 ---
 
