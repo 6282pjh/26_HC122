@@ -196,7 +196,7 @@ stateDiagram-v2
 
 - 칼끝이 선 가까이(`lateral`), 정해진 깊이(`z_err`), 공구 수직(`vertical_ok`), 칼날 방향 정렬(`blade_ok`)을 **동시에** 만족할 때만 "자르는 중"으로 봅니다.
 - 이미 그은 끝에서 이어질 때(공간 연속), 직전 step에도 자르고 있었을 때(시간 연속)만 절개 길이 `_cut_s`가 늘어납니다. 점을 찍듯 콕콕 찌르거나 선 끝만 건드려 보상을 받는 행동을 막기 위한 조건입니다.
-- 보상은 늘어난 절개 길이에 비례해 주고([L571](rl_policy/dofbot/tasks/dofbot_incision_env_v3.py#L571)), 중간에 칼을 들면 감점합니다. 시뮬레이션 평가: 무작위 절개선 64개 중 52개 완주(81%, [평가 기록](rl_policy/results/eval_incision_20261012.md)).
+- 보상은 늘어난 절개 길이에 비례해 주고([L571](rl_policy/dofbot/tasks/dofbot_incision_env_v3.py#L571)), 중간에 칼을 들면 감점합니다. 시뮬레이션 평가: 무작위 절개선 64개 중 52개 완주(81%).
 
 ### 5-6. Pixel → World → 로봇 베이스 좌표 변환 — vision ([`coordinate_transform.py` L38–47](vision/surgical_pipeline/common/coordinates/coordinate_transform.py#L38-L47))
 <img src="images/code/code_06_coord.png" alt="좌표 변환 코드">
@@ -232,8 +232,7 @@ stateDiagram-v2
 │   ├── dofbot/tasks/           # 절개(v3)·개복 환경, 환경 등록, skrl PPO 설정(agents/)
 │   ├── config/, setup.py       # Isaac Lab 확장 설치 정보 (pip install -e rl_policy)
 │   ├── scripts/                # 학습, 평가, 렌더링
-│   ├── weights/                # 학습한 정책 가중치(npz)
-│   └── results/                # 시뮬레이션 평가 결과
+│   └── weights/                # 학습한 정책 가중치(npz)
 ├── vision/                     # C920 절개선 검출(HSV), 30점 Homography 좌표 보정
 │   ├── surgical_pipeline/
 │   │   ├── camera/             # 절개선 검출·녹화, 30점 캘리브레이션 수집·좌표 변환 CLI
