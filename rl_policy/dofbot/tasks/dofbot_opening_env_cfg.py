@@ -1,13 +1,12 @@
 """
-Opening (개복) V0: both arms spread the incision, following a hand-taught motion.
+Opening (개복) V0: both arms spread the incision, following a reference path.
 
-The reference is `motions/opening_dual.json`: five servo waypoints per arm,
-taught on the real rig (bus 8 = right arm at the origin, bus 1 = left arm at
-x = 0.370). The environment reads that file and runs forward kinematics on it at
-start-up, so the path the policy is paid to follow IS the taught motion -- there
-are no hand-copied coordinates here to drift out of date.
+The reference path is `reference_waypoints` below: five servo waypoints per arm
+measured on the real rig (bus 8 = right arm at the origin, bus 1 = left arm at
+x = 0.370). The environment runs forward kinematics on them at start-up, so the
+path the policy is paid to follow is computed in the simulator itself.
 
-What the taught motion does (FK of the JSON, mm, right-arm base frame):
+What the reference path does (FK of the waypoints, mm, right-arm base frame):
 
     READY_OPENING   both arms folded up, tips ~380 above the patch
     OPEN_APPROACH   swing out sideways (right y=+118, left y=-85), 150 high
@@ -27,15 +26,9 @@ Both arms are policy-controlled here (8 actions), unlike incision V3.
 
 from __future__ import annotations
 
-import os
-
 from isaaclab.utils import configclass
 
 from .dofbot_incision_env_cfg_v3 import DofbotIncisionEnvCfgV3, _incise_actuators
-
-_REPO_DIR = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "..", "..")
-)
 
 
 @configclass
@@ -43,7 +36,7 @@ class DofbotOpeningEnvCfg(DofbotIncisionEnvCfgV3):
     """Opening environment configuration. Scene and assets come from incision V3."""
 
     episode_length_s = 10.0
-    # 4 arm joints per arm. arm_joint5 is not an action: the taught motion never
+    # 4 arm joints per arm. arm_joint5 is not an action: the reference path never
     # moves it (servo 89 / 88 at every waypoint), so it is pinned there.
     action_space = 8
     # per arm: q(4) dq(4) prev_action(4) target_rel(3) lookahead_rel(3)
@@ -51,8 +44,13 @@ class DofbotOpeningEnvCfg(DofbotIncisionEnvCfgV3):
     observation_space = 43
 
     # --- Reference motion ---------------------------------------------------
-    motion_json = os.environ.get(
-        "DOFBOT_OPENING_JSON", os.path.join(_REPO_DIR, "motions", "opening_dual.json")
+    # (name, right-arm servo deg x6, left-arm servo deg x6), 1 s per leg.
+    reference_waypoints = (
+        ("READY_OPENING", (85, 150, 45, 27, 89, 180), (85, 151, 45, 27, 88, 180)),
+        ("OPEN_APPROACH", (45, 109, 21, 12, 89, 180), (59, 103, 20, 17, 88, 180)),
+        ("INSERT_ABOVE",  (88, 87, 12, 8, 89, 180), (81, 82, 6, 25, 88, 180)),
+        ("INSERT_01",     (87, 67, 9, 19, 89, 180), (81, 59, 6, 36, 88, 180)),
+        ("INSERT_02",     (88, 67, 5, 19, 89, 180), (82, 57, 1, 36, 88, 180)),
     )
     # Servo degrees -> sim radians. Measured on bus 8 (joint_calibration_bus8.json
     # + find_j5_offset.py): joints 1-4 run inverted about 90, joint 5 is not
@@ -68,24 +66,24 @@ class DofbotOpeningEnvCfg(DofbotIncisionEnvCfgV3):
     opening_arm_dof_names = ["arm_joint1", "arm_joint2", "arm_joint3", "arm_joint4"]
     # Extra length of whatever the closed gripper holds, beyond the fingertips,
     # along the tool axis. 0 = the control point is the fingertip midpoint.
-    # The JSON keeps both grippers at servo 180, which is what the knife arm
+    # The waypoints keep both grippers at servo 180, which is what the knife arm
     # reads while clamping the scalpel, so both arms are probably holding a
     # retractor. Its length is not known; it only shifts the control point
-    # along a vertical tool, so the taught joint motion is reproduced either way.
+    # along a vertical tool, so the reference joint motion is reproduced either way.
     opening_tool_length = 0.0
 
     # --- Rig height -----------------------------------------------------------
-    # The taught motions put the tools ~30 mm lower than this scene's skin:
-    # in incision_dual.json the blade drags at z = -33..-36 mm and the holder's
+    # The measured motions put the tools ~30 mm lower than this scene's skin:
+    # in the measured incision motion the blade drags at z = -33..-36 mm and the holder's
     # fingertips press at -33 mm; here the left tip ends at -24 mm. The table
     # top is at -10 mm with collision ON, so without this the left arm cannot
-    # physically reach its taught pose. Whether the real surface is lower or
+    # physically reach its reference pose. Whether the real surface is lower or
     # the servo zeros are a few degrees off is not known -- one tape-measure
     # reading (base plate to skin top) settles it. Until then the scene is
-    # lowered to where the taught motion says the surface is.
+    # lowered to where the reference path says the surface is.
     rig_z_offset = -0.030
 
-    # --- Incision placement (the taught one, plus a little variation) --------
+    # --- Incision placement (the reference one, plus a little variation) --------
     # Offsets applied to every waypoint from `anchor_from_index` on, i.e. the
     # three that are positioned relative to the incision.
     anchor_from_index = 2
@@ -93,25 +91,25 @@ class DofbotOpeningEnvCfg(DofbotIncisionEnvCfgV3):
     line_shift_y_range = (-0.020, 0.020)
     line_yaw_range_deg = (-8.0, 8.0)
     reset_joint_noise = 0.05
-    # Share of episodes that start part-way along the taught motion.
+    # Share of episodes that start part-way along the reference path.
     rsi_prob = 0.5
     # Either tip further than this from where its path currently ends = reset.
     stray_limit = 0.12
 
     # --- Path following -------------------------------------------------------
-    # Samples per taught leg when turning the joint-space motion into a path.
+    # Samples per reference leg when turning the joint-space motion into a path.
     path_substeps = 8
     # Legs from this index on are the insertion and the spread.
     tight_from_leg = 2
     free_corridor = 0.040       # how far off the path the tip may be, free-space legs
     tight_corridor = 0.008      # same, insert + spread
-    # Furthest the progress may advance in one step. The taught motion takes 1 s
+    # Furthest the progress may advance in one step. The reference path takes 1 s
     # per leg (60 steps); the insert leg is ~50 mm, so ~1 mm/step. Allowing much
     # more lets the arm stab and yank instead of insert and spread.
     free_max_gap = 0.008
     tight_max_gap = 0.002
     path_samples = 8
-    opening_vertical_cos_tol = 0.85   # taught: 0.92..1.00 on the tight legs
+    opening_vertical_cos_tol = 0.85   # reference: 0.92..1.00 on the tight legs
     # Share of the progress reward each leg carries. The approach is 85% of the
     # path LENGTH; paying by length would make the opening itself a rounding error.
     leg_weights = (1.0, 1.0, 2.0, 4.0)
@@ -142,11 +140,11 @@ class DofbotOpeningEnvCfg(DofbotIncisionEnvCfgV3):
     rew_link_floor_penalty_scale = 150.0
     link_floor_cap = 0.08
     crash_margin = 0.010
-    min_tip_separation = 0.030  # taught minimum is 62 mm
+    min_tip_separation = 0.030  # reference minimum is 62 mm
     rew_tip_collision_penalty = 50.0
 
-    # The taught end pose has arm_joint3 at servo 1 / 5 deg, i.e. 1-5 deg from
-    # its stop. That is where the operator put it on real hardware, so the
+    # The reference end pose has arm_joint3 at servo 1 / 5 deg, i.e. 1-5 deg from
+    # its stop. That is where the reference pose puts it on real hardware, so the
     # incision task's joint-limit penalty would punish the reference itself.
     rew_joint_limit_penalty = 0.0
 

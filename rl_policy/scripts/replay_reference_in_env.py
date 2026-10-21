@@ -1,13 +1,13 @@
-"""Play the taught opening motion through the opening environment.
+"""Play the reference opening path through the opening environment.
 
-No policy: the JSON waypoints are interpolated in joint space, the way the
+No policy: the reference waypoints are interpolated in joint space, the way the
 servos move, and fed in as actions. This checks the TASK, not a policy -- if
-the motion the operator taught does not score as a completed opening, the task
+the reference path itself does not score as a completed opening, the task
 definition is wrong and training against it would be pointless.
 
 Usage:
-    python scripts/replay_json_in_env.py --device cuda:0
-    python scripts/replay_json_in_env.py --randomize   # with line shifts
+    python scripts/replay_reference_in_env.py --device cuda:0
+    python scripts/replay_reference_in_env.py --randomize   # with line shifts
 """
 
 import argparse
@@ -16,7 +16,7 @@ import os
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument("--device", default="cuda:0")
 parser.add_argument("--num_envs", type=int, default=16)
-parser.add_argument("--steps_per_leg", type=int, default=60, help="60 = the taught 1 s per move")
+parser.add_argument("--steps_per_leg", type=int, default=60, help="60 = 1 s per move, as in the reference")
 parser.add_argument("--randomize", action="store_true", help="keep the incision placement randomization")
 args = parser.parse_args()
 
