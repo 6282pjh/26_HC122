@@ -1,5 +1,5 @@
 """
-Opening (개복) V0: both arms follow the taught opening motion and hold it.
+Opening (개복) V0: both arms follow the reference opening path and hold it.
 
 관측 (43D):
     팔마다 20: q(4), dq(4), prev_action(4), target_rel(3), lookahead_rel(3),
@@ -7,14 +7,13 @@ Opening (개복) V0: both arms follow the taught opening motion and hold it.
     공통 3:    spread_dir(2), hold_fraction(1)
 
 액션 (8D):
-    - 팔마다 관절 1~4 의 위치 타깃 델타. 손목 롤(5번)과 그리퍼는 교시값 고정.
+    - 팔마다 관절 1~4 의 위치 타깃 델타. 손목 롤(5번)과 그리퍼는 기준값 고정.
 
 index 0 = right arm (I2C bus 8, base at the origin), 1 = left arm (bus 1).
 """
 
 from __future__ import annotations
 
-import json
 import math
 import torch
 from collections.abc import Sequence
@@ -32,7 +31,7 @@ ARM_KEYS = ("right", "left")
 
 
 class DofbotOpeningEnv(DirectRLEnv):
-    """Two arms insert at the incision and spread it, tracking a taught path."""
+    """Two arms insert at the incision and spread it, tracking a reference path."""
 
     cfg: DofbotOpeningEnvCfg
 
@@ -55,7 +54,7 @@ class DofbotOpeningEnv(DirectRLEnv):
 
         # Same limit fix-up as incision V3: the fingers first (the USD leaves
         # them at +/-FLT_MAX and PhysX rejects the whole batch), then the wrist
-        # roll, which the taught pose (-136 deg) needs widened past the USD's -90.
+        # roll, which the reference pose (-136 deg) needs widened past the USD's -90.
         def _set_limits(joint_names, lo, hi):
             idx, _ = ref.find_joints(joint_names)
             lim = torch.tensor([[lo, hi]], device=self.device)
@@ -77,7 +76,7 @@ class DofbotOpeningEnv(DirectRLEnv):
 
         # Reference motion: servo degrees -> sim radians -> control-point path.
         # The servos move joint-by-joint between waypoints, so the tip travels
-        # an ARC, not the straight line between the taught points (on the first
+        # an ARC, not the straight line between the reference points (on the first
         # leg the two differ by more than 100 mm). The path is therefore the
         # joint-space interpolation, sampled `path_substeps` times per leg.
         self._ref_names, self._way_q = self._load_motion()          # (2, W, 5)
@@ -107,7 +106,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         self._seg_len = torch.ones((n, 2, p - 1), device=self.device)
         self._cum_len = torch.zeros((n, 2, p), device=self.device)
         self._spread_dir = torch.zeros((n, 2), device=self.device)
-        # Where this episode's incision is, relative to the taught one:
+        # Where this episode's incision is, relative to the reference one:
         # shift x, shift y (m) and turn (rad).
         self._placement = torch.zeros((n, 3), device=self.device)
         # How far along its path each arm has actually travelled. Like the
@@ -134,7 +133,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         self._tip_markers = VisualizationMarkers(tip_cfg)
 
         print("[Opening-V0] ========================================")
-        print(f"[Opening-V0] Reference motion: {self.cfg.motion_json}")
+        print(f"[Opening-V0] Reference path: {len(self._ref_names)} waypoints")
         print(f"[Opening-V0] Number of environments: {self.num_envs}")
         print(f"[Opening-V0] Control point: wrist + {self._tool_off[0]*1000:.1f} / "
               f"{self._tool_off[1]*1000:.1f} mm along the tool axis (right / left)")
@@ -148,14 +147,11 @@ class DofbotOpeningEnv(DirectRLEnv):
 
     # Reference motion ------------------------------------------------------
     def _load_motion(self) -> tuple[list[str], torch.Tensor]:
-        with open(self.cfg.motion_json) as f:
-            motion = json.load(f)
         names, rows = [], []
-        for wp in motion["waypoints"]:
-            names.append(wp["name"])
+        for name, *servos in self.cfg.reference_waypoints:
+            names.append(name)
             per_arm = []
-            for key in ARM_KEYS:
-                servo = wp[key]["joints"]
+            for key, servo in zip(ARM_KEYS, servos):
                 inv = self.cfg.servo_inverted[key]
                 q = []
                 for i in range(4):
@@ -170,7 +166,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         return names, q.permute(1, 0, 2).contiguous()
 
     def _fk_reference(self) -> torch.Tensor:
-        """Control-point position at every taught waypoint, env-local.
+        """Control-point position at every reference waypoint, env-local.
 
         Done in the simulator itself rather than from stored numbers, so the
         path is always consistent with the JSON, the servo mapping and the
@@ -211,7 +207,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         if bad.any():
             a, k, j = (int(v) for v in bad.nonzero()[0])
             raise ValueError(
-                f"{self.cfg.motion_json}: {ARM_KEYS[a]} arm, near waypoint "
+                f"reference_waypoints: {ARM_KEYS[a]} arm, near waypoint "
                 f"{self._ref_names[k // self._sub]}, "
                 f"arm_joint{j + 1} = {math.degrees(float(self._ref_q[a, k, j])):+.1f} deg is "
                 f"outside the simulated joint range. Check servo_inverted / j5_servo_offset_deg."
@@ -219,7 +215,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         low = float(self._ref_pts[:, :, 2].min())
         if low < self._tip_floor_z:
             raise ValueError(
-                f"The taught motion reaches z = {low*1000:+.0f} mm but the table top is at "
+                f"The reference path reaches z = {low*1000:+.0f} mm but the table top is at "
                 f"{self._tip_floor_z*1000:+.0f} mm. Lower rig_z_offset."
             )
 
@@ -267,7 +263,7 @@ class DofbotOpeningEnv(DirectRLEnv):
 
     # Path ------------------------------------------------------------------
     def _generate_path(self, env_ids: torch.Tensor):
-        """Place the taught path for this episode's incision.
+        """Place the reference path for this episode's incision.
 
         Everything from waypoint `anchor_from_index` on is defined relative to
         the incision and moves rigidly with it. The approach before it is
@@ -530,7 +526,7 @@ class DofbotOpeningEnv(DirectRLEnv):
         self._generate_path(env_tensor)
 
         # Reference-state initialisation: some episodes start part-way along
-        # the taught motion (both arms at the same point of it) instead of at
+        # the reference path (both arms at the same point of it) instead of at
         # READY. Starting only at READY, a 26-iteration probe never got past 3%
         # of the path -- the arms random-walked out of the corridor in the first
         # seconds and the insert and spread legs were never visited at all.

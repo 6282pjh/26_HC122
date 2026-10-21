@@ -1,8 +1,8 @@
 """Completion-rate evaluation for Dofbot-Opening-Direct-v0.
 
 Reward is not a health metric here either. What counts is whether both arms got
-through the insertion, reached the taught spread and HELD it, and if not, at
-which leg of the taught motion each arm stopped.
+through the insertion, reached the reference spread and HELD it, and if not, at
+which leg of the reference path each arm stopped.
 
 Usage:
     python scripts/eval_opening.py <checkpoint.pt> [--device cuda:0] [--envs 64]
@@ -113,10 +113,10 @@ if n_done:
     c = completed
     kept = (held_after[c] / steps_after[c].clamp(min=1)).mean()
     print(f"  opening width: {float(width_done[c].mean()) * 1000:.0f} mm when completed, "
-          f"{float(width_end[c].mean()) * 1000:.0f} mm at episode end (taught {target:.0f} mm)")
+          f"{float(width_end[c].mean()) * 1000:.0f} mm at episode end (reference {target:.0f} mm)")
     print(f"  still holding afterwards: {float(kept) * 100:.0f}% of the remaining steps")
 
-print("\nwhere each arm stopped (leg of the taught motion it was on at its furthest):")
+print("\nwhere each arm stopped (leg of the reference path it was on at its furthest):")
 for a, arm in enumerate(("right", "left")):
     row = "  ".join(f"{names[k]}->{names[k + 1]}: {(bl[:, a] == k).sum():>2}" for k in range(len(names) - 1))
     print(f"  {arm:<5} {row}")
